@@ -61,7 +61,7 @@ https://www.perceptionsystem.com/`,
 const contact = getNextContact();
 _contactIndex = 0; // reset so main loop starts from index 0
 
-const URL_FILE            = 'urls.txt';
+const URL_FILE            = 'retry_urls.txt';
 const OUTPUT_DIR          = 'form_results';
 const CSV_PATH            = `${OUTPUT_DIR}/contact_results.csv`;
 const PROGRESS_FILE       = `${OUTPUT_DIR}/progress.txt`;
