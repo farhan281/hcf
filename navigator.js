@@ -130,6 +130,7 @@ async function findContactPage(driver) {
 
       await driver.get(absUrl);
       await waitForPageReady(driver, 6000);
+      await sleep(1500);
       const destUrl = await driver.getCurrentUrl();
 
       // Verify destination has a contact form with message field
