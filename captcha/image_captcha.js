@@ -37,7 +37,8 @@ function solveMathExpr(text) {
        .replace(/\bminus\b/g, '-')
        .replace(/\btimes\b|\bmultiplied\s*by\b/g, '*')
        .replace(/\bdivided\s*by\b/g, '/')
-       .replace(/[×]/g, '*').replace(/[÷]/g, '/');
+       .replace(/[×]/g, '*').replace(/[÷]/g, '/')
+       .replace(/(\d)\s*x\s*(\d)/g, '$1*$2');
   // Extract math expression — handles negative numbers too
   const m = t.match(/(-?\d+)\s*([+\-*/])\s*(-?\d+)/);
   if (!m) return null;
