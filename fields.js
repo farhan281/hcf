@@ -33,7 +33,7 @@ const CAPTCHA_PATTERNS = [
 const FIELD_PATTERNS = [
   ['first_name', ['first name','firstname','fname','given name','forename','first']],
   ['last_name',  ['last name','lastname','lname','surname','family name','last']],
-  ['full_name',  ['full name','fullname','your name','your full name','name']],
+  ['full_name',  ['full name','fullname','your name','your full name','contact name']],
   ['email',      ['email','e-mail','mail address','email address','correo']],
   ['phone',      ['phone','mobile','cell','tel','contact number','whatsapp','phone number','fax','contact no','contact_no','mob','ph no','phno','your number','number','contact']],
   ['company',    ['company','organization','organisation','business','firm','company name','practice','clinic','hospital']],
