@@ -203,7 +203,7 @@ async function ocrVariants(variantBuffers) {
 
 // ── Python fallback OCR (better for complex captchas) ────────────────────────
 function ocrWithPython(imagePath) {
-  const PYTHON = process.env.PYTHON || '/home/ubuntu/Captch-Solver-Contact-Form/.venv/bin/python';
+  const PYTHON = process.env.PYTHON || '/usr/bin/python3';
   const script = `
 import sys, re
 from PIL import Image, ImageFilter, ImageEnhance
