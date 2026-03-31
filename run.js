@@ -4,7 +4,7 @@ const fs   = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 
-const CSV_PATH  = path.join(__dirname, 'salesforce_unified_data.csv');
+const CSV_PATH  = path.join(__dirname, 'digital_marketing_data.csv');
 const URLS_FILE = path.join(__dirname, 'retry_urls.txt');
 
 function runProcess(cmd, args, label) {
