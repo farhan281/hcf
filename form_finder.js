@@ -53,7 +53,7 @@ const SCORE_FORMS_JS = `
     });
     var html = (f.outerHTML || '').toLowerCase().substring(0, 6000);
     var hasEmail    = !!f.querySelector('input[type=email],[name*=email i],[id*=email i],[placeholder*=email i]');
-    var hasTextarea = !!f.querySelector('textarea');
+    var hasTextarea = !!f.querySelector('textarea:not([name*=recaptcha i]):not([id*=recaptcha i])');
     var hasName     = !!f.querySelector('[name*=name i],[id*=name i],[placeholder*=name i]');
     var hasPhone    = !!f.querySelector('input[type=tel],[name*=phone i],[name*=mobile i],[id*=phone i],[placeholder*=phone i]');
     var hasMsg      = !!f.querySelector('[name*=message i],[name*=comment i],[name*=subject i],[id*=message i],[placeholder*=message i],[placeholder*=subject i]');
@@ -81,6 +81,8 @@ const SCORE_FORMS_JS = `
     else if (visible.length >= 1) score += 2;
     if (isPlugin)    score += 25;
     if (onContact)   score += 25;
+    // Plugin form with multiple visible inputs is almost certainly a contact form
+    if (isPlugin && visible.length >= 3) score += 20;
     if (hasPassword) score -= 60;
     if (isSearch)    score -= 50;
     if (isLogin)     score -= 60;
