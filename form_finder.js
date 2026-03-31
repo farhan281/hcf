@@ -181,16 +181,18 @@ async function scoreAndPickForm(driver, allForms, formData) {
   formData.sort((a, b) => b.score - a.score);
   console.log(`      Found ${allForms.length} form(s):`);
   formData.forEach(f => {
-    console.log(`        Form ${f.idx+1}: score=${f.score} email=${f.hasEmail} textarea=${f.hasTextarea} name=${f.hasName} phone=${f.hasPhone} visible=${f.visible}`);
+    console.log(`        Form ${f.idx+1}: score=${f.score} email=${f.hasEmail} textarea=${f.hasTextarea} name=${f.hasName} phone=${f.hasPhone} visible=${f.visible} plugin=${f.isPlugin||false}`);
   });
   for (const f of formData) {
     if (f.hasPassword || f.isSearch || f.isLogin) continue;
+    // Plugin form with 2+ visible inputs = accept
+    if (f.isPlugin && f.visible >= 2) {
+      const form = allForms[f.idx];
+      if (form) { console.log(`      ✅ Selected plugin form ${f.idx+1} (score=${f.score})`); return form; }
+    }
     if (f.score > 0 && (f.hasEmail || f.hasTextarea || f.hasMsg || (f.hasName && f.hasPhone) || f.visible >= 2)) {
       const form = allForms[f.idx];
-      if (form) {
-        console.log(`      ✅ Selected form ${f.idx+1} (score=${f.score})`);
-        return form;
-      }
+      if (form) { console.log(`      ✅ Selected form ${f.idx+1} (score=${f.score})`); return form; }
     }
   }
   return null;
