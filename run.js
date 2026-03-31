@@ -4,9 +4,8 @@ const fs   = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 
-const CSV_PATH      = path.join(__dirname, 'digital_marketing_data.csv');
-const URLS_FILE     = path.join(__dirname, 'retry_urls.txt');
-const FILLER_DONE   = path.join(__dirname, 'form_results', 'progress.txt');
+const CSV_PATH  = path.join(__dirname, 'digital_marketing_data.csv');
+const URLS_FILE = path.join(__dirname, 'retry_urls.txt');
 
 fs.mkdirSync(path.join(__dirname, 'form_results'), { recursive: true });
 
