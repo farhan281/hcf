@@ -1,0 +1,41 @@
+{
+  "areas": [
+    "New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose",
+    "Austin", "Jacksonville", "Fort Worth", "Columbus", "Charlotte", "San Francisco", "Indianapolis", "Seattle", "Denver", "Washington DC",
+    "Boston", "El Paso", "Nashville", "Detroit", "Oklahoma City", "Portland", "Las Vegas", "Memphis", "Louisville", "Baltimore",
+    "Milwaukee", "Albuquerque", "Tucson", "Fresno", "Sacramento", "Kansas City", "Mesa", "Atlanta", "Omaha", "Colorado Springs",
+    "Raleigh", "Miami", "Virginia Beach", "Oakland", "Minneapolis", "Tulsa", "Arlington", "Tampa", "New Orleans", "Wichita",
+    "Cleveland", "Bakersfield", "Aurora", "Anaheim", "Honolulu", "Santa Ana", "Riverside", "Corpus Christi", "Lexington", "Stockton",
+    "Henderson", "Saint Paul", "St. Louis", "Cincinnati", "Pittsburgh", "Greensboro", "Anchorage", "Plano", "Lincoln", "Orlando",
+    "Irvine", "Newark", "Toledo", "Durham", "Chula Vista", "Fort Wayne", "Jersey City", "St. Petersburg", "Laredo", "Madison",
+    "Chandler", "Buffalo", "Lubbock", "Scottsdale", "Reno", "Glendale", "Gilbert", "Winston-Salem", "North Las Vegas", "Norfolk",
+    "Chesapeake", "Garland", "Irving", "Hialeah", "Fremont", "Boise", "Richmond", "Baton Rouge", "Spokane", "Des Moines",
+    "Tacoma", "San Bernardino", "Modesto", "Fontana", "Santa Clarita", "Birmingham", "Oxnard", "Fayetteville", "Moreno Valley", "Rochester",
+    "Glendale", "Huntington Beach", "Salt Lake City", "Grand Rapids", "Amarillo", "Yonkers", "Aurora", "Montgomery", "Akron", "Little Rock",
+    "Huntsville", "Augusta", "Port St. Lucie", "Grand Prairie", "Columbus", "Tallahassee", "Overland Park", "Tempe", "McKinney", "Mobile",
+    "Cape Coral", "Shreveport", "Frisco", "Knoxville", "Worcester", "Brownsville", "Vancouver", "Fort Lauderdale", "Sioux Falls", "Ontario",
+    "Chattanooga", "Providence", "Newport News", "Rancho Cucamonga", "Santa Rosa", "Oceanside", "Salem", "Elk Grove", "Garden Grove", "Pembroke Pines",
+    "Peoria", "Eugene", "Corona", "Cary", "Springfield", "Fort Collins", "Jackson", "Alexandria", "Hayward", "Lancaster",
+    "Salinas", "Palmdale", "Hollywood", "Pasadena", "Pomona", "Torrance", "Escondido", "Naperville", "Rocky Mount", "Paterson",
+    "Surprise", "Denton", "Roseville", "Thornton", "Macon", "Waco", "Murfreesboro", "Dayton", "Lakewood", "Aurora",
+    "London", "Manchester", "Birmingham", "Leeds", "Glasgow", "Sheffield", "Bradford", "Liverpool", "Edinburgh", "Bristol",
+    "Wakefield", "Cardiff", "Coventry", "Nottingham", "Leicester", "Sunderland", "Belfast", "Newcastle", "Brighton", "Hull",
+    "Plymouth", "Stoke-on-Trent", "Wolverhampton", "Derby", "Swansea", "Southampton", "Salford", "Aberdeen", "Westminster", "Portsmouth",
+    "York", "Peterborough", "Dundee", "Lancaster", "Oxford", "Newport", "Preston", "St Albans", "Norwich", "Chester",
+    "Cambridge", "Salisbury", "Exeter", "Gloucester", "Lisburn", "Chichester", "Winchester", "Londonderry", "Carlisle", "Worcester",
+    "Bath", "Durham", "Lincoln", "Hereford", "Armagh", "Inverness", "Stirling", "Canterbury", "Lichfield", "Newry",
+    "Ripon", "Bangor", "Truro", "Ely", "Wells", "St Asaph", "St Davids", "Paris", "Marseille", "Lyon", "Toulouse",
+    "Nice", "Nantes", "Strasbourg", "Montpellier", "Bordeaux", "Lille", "Rennes", "Reims", "Le Havre", "Saint-Étienne",
+    "Toulon", "Angers", "Grenoble", "Dijon", "Nîmes", "Aix-en-Provence", "Saint-Quentin-en-Yvelines", "Brest", "Le Mans", "Amiens",
+    "Tours", "Limoges", "Clermont-Ferrand", "Villeurbanne", "Besançon", "Orléans", "Metz", "Rouen", "Mulhouse", "Perpignan",
+    "Caen", "Boulogne-Billancourt", "Nancy", "Saint-Denis", "Saint-Paul", "Montreuil", "Argenteuil", "Roubaix", "Tourcoing", "Nanterre",
+    "Avignon", "Créteil", "Dunkerque", "Poitiers", "Asnières-sur-Seine", "Courbevoie", "Versailles", "Colombes", "Fort-de-France", "Aulnay-sous-Bois",
+    "Saint-Pierre", "Rueil-Malmaison", "Pau", "Aubervilliers", "Le Tampon", "Champigny-sur-Marne", "Antibes", "La Rochelle", "Calais", "Cannes"
+  ],
+  "keywords": [
+    "Cosmetic clinics",
+    "Dental Clinics", 
+    "IVF centers",
+    "Dermatology"
+  ]
+}
