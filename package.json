@@ -9,6 +9,6 @@
   "dependencies": {
     "selenium-webdriver": "^4.27.1",
     "tesseract.js": "^5.0.0",
-    "puppeteer": "^22.0.0"
+    "puppeteer": "21.11.0"
   }
 }
