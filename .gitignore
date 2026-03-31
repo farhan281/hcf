@@ -1,0 +1,9 @@
+node_modules/
+form_results/
+.driver-cache/
+*.png
+*.mp3
+*.wav
+urls.txt
+progress.txt
+eng.traineddata
