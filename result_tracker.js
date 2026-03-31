@@ -5,6 +5,18 @@ const fs   = require('fs');
 const path = require('path');
 const { CSV_FIELDS, CSV_PATH, PROGRESS_FILE, OUTPUT_DIR } = require('./config');
 
+const SHEETS_URL = process.env.GOOGLE_SHEETS_URL || '';
+
+function sendToSheets(record) {
+  if (!SHEETS_URL) return;
+  const row = CSV_FIELDS.map(f => record[f] || '');
+  fetch(SHEETS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'cf', rows: [row] })
+  }).catch(() => {});
+}
+
 function takeDebugScreenshot(driver, prefix) {
   try {
     const p = path.join(OUTPUT_DIR, `${prefix}_${Math.floor(Date.now()/1000)}.png`);
