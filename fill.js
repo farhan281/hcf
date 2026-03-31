@@ -6,6 +6,7 @@ const { spawn } = require('child_process');
 
 const CSV_PATH  = path.join(__dirname, 'digital_marketing_data.csv');
 const URLS_FILE = path.join(__dirname, 'retry_urls.txt');
+const CHECK_INTERVAL = 30000; // check every 30 seconds
 
 fs.mkdirSync(path.join(__dirname, 'form_results'), { recursive: true });
 
@@ -32,47 +33,66 @@ function getFilledUrls() {
   return filled;
 }
 
-if (!fs.existsSync(CSV_PATH)) {
-  console.error('❌ digital_marketing_data.csv not found. Run scraper first.');
-  process.exit(1);
+function getNewUrls() {
+  if (!fs.existsSync(CSV_PATH)) return [];
+
+  const lines = fs.readFileSync(CSV_PATH, 'utf8').split('\n').filter(Boolean);
+  if (lines.length < 2) return [];
+
+  const headers = parseLine(lines[0]).map(h => h.toLowerCase());
+  const cfIdx = headers.findIndex(h => h.includes('contact form'));
+  const awIdx = headers.findIndex(h => h.includes('actual website'));
+  const mwIdx = headers.findIndex(h => h.includes('maps website'));
+
+  const filled = getFilledUrls();
+  const queued = new Set(
+    fs.existsSync(URLS_FILE)
+      ? fs.readFileSync(URLS_FILE, 'utf8').split('\n').map(l => l.trim()).filter(Boolean)
+      : []
+  );
+  const seen = new Set([...filled, ...queued]);
+
+  const newUrls = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = parseLine(lines[i]);
+    const url  = (cfIdx >= 0 && cols[cfIdx]) ? cols[cfIdx]
+               : (awIdx >= 0 && cols[awIdx]) ? cols[awIdx]
+               : (mwIdx >= 0 && cols[mwIdx]) ? cols[mwIdx]
+               : '';
+    if (url && /^https?:\/\//i.test(url) && !url.includes('google.com/maps') && !seen.has(url)) {
+      seen.add(url);
+      newUrls.push(url);
+    }
+  }
+  return newUrls;
 }
 
-const lines = fs.readFileSync(CSV_PATH, 'utf8').split('\n').filter(Boolean);
-if (lines.length < 2) { console.error('❌ CSV is empty.'); process.exit(1); }
+let fillerRunning = false;
 
-const headers = parseLine(lines[0]).map(h => h.toLowerCase());
-const cfIdx = headers.findIndex(h => h.includes('contact form'));
-const awIdx = headers.findIndex(h => h.includes('actual website'));
-const mwIdx = headers.findIndex(h => h.includes('maps website'));
+function runFiller() {
+  if (fillerRunning) return;
+  fillerRunning = true;
+  console.log('\n🚀 Starting Contact Form Filler...\n');
+  const child = spawn('node', ['main.js'], { cwd: __dirname, stdio: 'inherit' });
+  child.on('exit', () => {
+    fillerRunning = false;
+    console.log('\n⏳ Filler done — waiting for new URLs...');
+  });
+}
 
-const filled = getFilledUrls();
-const seen   = new Set([
-  ...(fs.existsSync(URLS_FILE)
-    ? fs.readFileSync(URLS_FILE, 'utf8').split('\n').map(l => l.trim()).filter(Boolean)
-    : []),
-  ...filled,
-]);
-
-const newUrls = [];
-for (let i = 1; i < lines.length; i++) {
-  const cols = parseLine(lines[i]);
-  const url  = (cfIdx >= 0 && cols[cfIdx]) ? cols[cfIdx]
-             : (awIdx >= 0 && cols[awIdx]) ? cols[awIdx]
-             : (mwIdx >= 0 && cols[mwIdx]) ? cols[mwIdx]
-             : '';
-  if (url && /^https?:\/\//i.test(url) && !url.includes('google.com/maps') && !seen.has(url)) {
-    seen.add(url);
-    newUrls.push(url);
+function tick() {
+  const newUrls = getNewUrls();
+  if (newUrls.length) {
+    fs.appendFileSync(URLS_FILE, newUrls.join('\n') + '\n', 'utf8');
+    console.log(`\n➕ ${newUrls.length} new URLs added to queue`);
+    runFiller();
+  } else {
+    process.stdout.write('.');
   }
 }
 
-console.log(`\n📂 CSV: ${CSV_PATH}`);
-console.log(`🔗 New URLs: ${newUrls.length} (skipped ${filled.size} already filled)`);
-
-if (!newUrls.length) { console.log('✅ No new URLs to fill.'); process.exit(0); }
-
-fs.writeFileSync(URLS_FILE, newUrls.join('\n') + '\n', 'utf8');
-console.log(`✅ Saved to ${URLS_FILE}\n🚀 Starting Contact Form Filler...\n`);
-
-const child = spawn('node', ['main.js'], { cwd: __dirname, stdio: 'inherit' });
-child.on('exit', code => process.exit(code || 0));
+// Initial run
+console.log('👀 Watching for URLs... (Ctrl+C to stop)\n');
+if (!fs.existsSync(URLS_FILE)) fs.writeFileSync(URLS_FILE, '', 'utf8');
+tick();
+setInterval(tick, CHECK_INTERVAL);
