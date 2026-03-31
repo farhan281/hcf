@@ -32,63 +32,47 @@ function getFilledUrls() {
   return filled;
 }
 
-const cmd = process.argv[2];
-
-// ── node run.js scrape ────────────────────────────────────────────────────────
-if (cmd === 'scrape') {
-  console.log('\n🗺️  Starting Google Maps Scraper...\n');
-  const child = spawn('node', ['unified_scraper.js'], { cwd: __dirname, stdio: 'inherit' });
-  child.on('exit', code => process.exit(code || 0));
-
-// ── node run.js fill ──────────────────────────────────────────────────────────
-} else if (cmd === 'fill') {
-  if (!fs.existsSync(CSV_PATH)) {
-    console.error('❌ digital_marketing_data.csv not found. Run scrape first.');
-    process.exit(1);
-  }
-
-  const lines = fs.readFileSync(CSV_PATH, 'utf8').split('\n').filter(Boolean);
-  if (lines.length < 2) { console.error('❌ CSV is empty.'); process.exit(1); }
-
-  const headers = parseLine(lines[0]).map(h => h.toLowerCase());
-  const cfIdx = headers.findIndex(h => h.includes('contact form'));
-  const awIdx = headers.findIndex(h => h.includes('actual website'));
-  const mwIdx = headers.findIndex(h => h.includes('maps website'));
-
-  const filled = getFilledUrls();
-  const seen   = new Set([
-    ...(fs.existsSync(URLS_FILE)
-      ? fs.readFileSync(URLS_FILE, 'utf8').split('\n').map(l => l.trim()).filter(Boolean)
-      : []),
-    ...filled,
-  ]);
-
-  const newUrls = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cols = parseLine(lines[i]);
-    const url  = (cfIdx >= 0 && cols[cfIdx]) ? cols[cfIdx]
-               : (awIdx >= 0 && cols[awIdx]) ? cols[awIdx]
-               : (mwIdx >= 0 && cols[mwIdx]) ? cols[mwIdx]
-               : '';
-    if (url && /^https?:\/\//i.test(url) && !url.includes('google.com/maps') && !seen.has(url)) {
-      seen.add(url);
-      newUrls.push(url);
-    }
-  }
-
-  console.log(`\n📂 CSV: ${CSV_PATH}`);
-  console.log(`🔗 New URLs: ${newUrls.length} (skipped ${filled.size} already filled)`);
-
-  if (!newUrls.length) { console.log('✅ No new URLs to fill.'); process.exit(0); }
-
-  fs.writeFileSync(URLS_FILE, newUrls.join('\n') + '\n', 'utf8');
-  console.log(`✅ Saved to ${URLS_FILE}\n🚀 Starting Contact Form Filler...\n`);
-
-  const child = spawn('node', ['main.js'], { cwd: __dirname, stdio: 'inherit' });
-  child.on('exit', code => process.exit(code || 0));
-
-} else {
-  console.log('Usage:');
-  console.log('  node run.js scrape   — Google Maps se data nikalo');
-  console.log('  node run.js fill     — Nikle hue data par CF fill karo');
+if (!fs.existsSync(CSV_PATH)) {
+  console.error('❌ digital_marketing_data.csv not found. Run scraper first.');
+  process.exit(1);
 }
+
+const lines = fs.readFileSync(CSV_PATH, 'utf8').split('\n').filter(Boolean);
+if (lines.length < 2) { console.error('❌ CSV is empty.'); process.exit(1); }
+
+const headers = parseLine(lines[0]).map(h => h.toLowerCase());
+const cfIdx = headers.findIndex(h => h.includes('contact form'));
+const awIdx = headers.findIndex(h => h.includes('actual website'));
+const mwIdx = headers.findIndex(h => h.includes('maps website'));
+
+const filled = getFilledUrls();
+const seen   = new Set([
+  ...(fs.existsSync(URLS_FILE)
+    ? fs.readFileSync(URLS_FILE, 'utf8').split('\n').map(l => l.trim()).filter(Boolean)
+    : []),
+  ...filled,
+]);
+
+const newUrls = [];
+for (let i = 1; i < lines.length; i++) {
+  const cols = parseLine(lines[i]);
+  const url  = (cfIdx >= 0 && cols[cfIdx]) ? cols[cfIdx]
+             : (awIdx >= 0 && cols[awIdx]) ? cols[awIdx]
+             : (mwIdx >= 0 && cols[mwIdx]) ? cols[mwIdx]
+             : '';
+  if (url && /^https?:\/\//i.test(url) && !url.includes('google.com/maps') && !seen.has(url)) {
+    seen.add(url);
+    newUrls.push(url);
+  }
+}
+
+console.log(`\n📂 CSV: ${CSV_PATH}`);
+console.log(`🔗 New URLs: ${newUrls.length} (skipped ${filled.size} already filled)`);
+
+if (!newUrls.length) { console.log('✅ No new URLs to fill.'); process.exit(0); }
+
+fs.writeFileSync(URLS_FILE, newUrls.join('\n') + '\n', 'utf8');
+console.log(`✅ Saved to ${URLS_FILE}\n🚀 Starting Contact Form Filler...\n`);
+
+const child = spawn('node', ['main.js'], { cwd: __dirname, stdio: 'inherit' });
+child.on('exit', code => process.exit(code || 0));
