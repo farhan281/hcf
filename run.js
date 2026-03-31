@@ -48,11 +48,12 @@ function extractNewUrls() {
   const mwIdx = headers.findIndex(h => h.includes('maps website'));
 
   // Already queued URLs
-  const already = new Set(
-    fs.existsSync(URLS_FILE)
+  const already = new Set([
+    ...(fs.existsSync(URLS_FILE)
       ? fs.readFileSync(URLS_FILE, 'utf8').split('\n').map(l => l.trim()).filter(Boolean)
-      : []
-  );
+      : []),
+    ...getFilledUrls(),
+  ]);
 
   const newUrls = [];
   for (let i = 1; i < lines.length; i++) {
