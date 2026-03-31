@@ -93,5 +93,5 @@ function removeOverlays(driver) {
 
 module.exports = {
   takeDebugScreenshot, saveResults, saveProgress,
-  loadProgress, loadExistingResults, clearProgress, removeOverlays,
+  loadProgress, loadExistingResults, clearProgress, removeOverlays, sendToSheets,
 };
