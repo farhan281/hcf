@@ -156,14 +156,11 @@ function isContactUrl(url) {
 }
 
 async function checkPageForForm(driver) {
-  // Wait a bit for lazy-loaded content
-  await sleep(1200);
+  await sleep(1500);
   let hasForm = await driver.executeScript(HAS_CONTACT_FORM_JS).catch(() => false);
   if (hasForm) return true;
-  // Scroll down and check again
-  try { await driver.executeScript('window.scrollTo(0, Math.min(600, document.body.scrollHeight * 0.4))'); }
-  catch (_) {}
-  await sleep(800);
+  try { await driver.executeScript('window.scrollTo(0, Math.min(800, document.body.scrollHeight * 0.5))'); } catch (_) {}
+  await sleep(1000);
   hasForm = await driver.executeScript(HAS_CONTACT_FORM_JS).catch(() => false);
   return !!hasForm;
 }
