@@ -54,6 +54,9 @@ function matchField(ctx, tag, type) {
   if (type === 'url')     return 'website';
   if (type === 'number' && ctx.includes('phone')) return 'phone';
   if (type === 'number' && (ctx.includes('contact') || ctx.includes('mobile') || ctx.includes('mob'))) return 'phone';
+  // company check before full_name to prevent 'company name' matching full_name
+  if (ctx.includes('company') || ctx.includes('organization') || ctx.includes('organisation') ||
+      ctx.includes('business') || ctx.includes('firm')) return 'company';
   for (const [fieldTag, keywords] of FIELD_PATTERNS) {
     if (keywords.some(k => ctx.includes(k))) return fieldTag;
   }
