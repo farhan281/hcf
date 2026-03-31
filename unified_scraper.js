@@ -31,6 +31,26 @@ function loadProgress() {
             console.log(`📊 Resuming from search ${progress.currentIndex + 1}`);
             console.log(`🔄 Already processed ${progress.processedMapsUrls.size} unique companies`);
         }
+        // Also load Maps URLs from existing CSV to prevent duplicates after restart
+        if (fs.existsSync(CSV_FILE)) {
+            const lines = fs.readFileSync(CSV_FILE, 'utf8').split('\n').filter(Boolean);
+            if (lines.length > 1) {
+                const headers = lines[0].split(',');
+                const mapsUrlIdx = headers.findIndex(h => h.toLowerCase().includes('maps url'));
+                if (mapsUrlIdx >= 0) {
+                    let loaded = 0;
+                    for (let i = 1; i < lines.length; i++) {
+                        const cols = lines[i].split(',');
+                        const url = (cols[mapsUrlIdx] || '').replace(/^"|"$/g, '').trim();
+                        if (url && url.startsWith('http')) {
+                            progress.processedMapsUrls.add(url);
+                            loaded++;
+                        }
+                    }
+                    console.log(`📋 Loaded ${loaded} URLs from CSV to prevent duplicates`);
+                }
+            }
+        }
     } catch (error) {
         console.log('Starting fresh scraping');
     }
