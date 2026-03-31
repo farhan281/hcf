@@ -42,6 +42,8 @@ function saveResults(results) {
   const header = CSV_FIELDS.join(',');
   const rows   = results.map(r => CSV_FIELDS.map(f => _escapeCsv(r[f] || '')).join(','));
   fs.writeFileSync(CSV_PATH, [header, ...rows].join('\n'), 'utf8');
+  // Send latest record to Google Sheets
+  if (results.length) sendToSheets(results[results.length - 1]);
 }
 
 function saveProgress(idx) {
