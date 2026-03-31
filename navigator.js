@@ -1,44 +1,102 @@
 // navigator.js
 'use strict';
 
-const CONTACT_URL_WORDS = ['contact','get-in-touch','inquiry','enquiry','feedback','reach-us'];
+const CONTACT_URL_WORDS = [
+  'contact','get-in-touch','inquiry','enquiry','feedback','reach-us',
+  'reach-out','connect','appointment','book-appointment','schedule',
+  'touch','write-to-us','send-message','consult','new-patient',
+  'patient-form','refer','request','quote',
+];
 
 const STRONG_TEXT = [
   'contact us','contact','get in touch','reach us','get in contact',
   'contact form','reach out','write to us','feedback','send us a message',
-  'contacto','contáctanos','contactanos','contato','enquire','inquire',
+  'send a message','connect with us','connect','drop us a line',
+  'drop a line','say hello','say hi','talk to us','speak to us',
+  'message us','email us','inquire','inquire now','enquire','enquire now',
+  'book appointment','book a consultation','schedule appointment',
+  'schedule a consultation','request appointment','request a call',
+  'free consultation','get a quote','request a quote','get quote',
+  'make an appointment','appointment request','new patient',
+  'new patient form','patient contact','refer a patient',
+  'ask a question','have a question','questions','help','support',
+  'contacto','contáctanos','contactanos','contato','escríbenos',
 ];
-const HREF_KEYWORDS  = ['contact','inquiry','enquiry','feedback','reach-us','get-in-touch'];
-const BLACKLIST_TEXT = ['about','about us','home','services','portfolio','blog','news',
-  'gallery','team','careers','jobs','faq','privacy','terms','sitemap','login',
-  'register','shop','store','products','pricing','testimonials','reviews'];
-const BLACKLIST_HREF = ['about','javascript','mailto','tel','login','register',
-  'shop','cart','checkout','blog','news','gallery','portfolio','careers','jobs'];
 
-// Check if current page already has a usable contact form (with message/textarea)
+const HREF_KEYWORDS = [
+  'contact','inquiry','enquiry','feedback','reach-us','get-in-touch',
+  'connect','appointment','schedule','book','consult','touch',
+  'write','message','support','help','quote','refer','new-patient',
+  'patient','request',
+];
+
+const BLACKLIST_TEXT = [
+  'about us','home','portfolio','blog','news','gallery','team',
+  'careers','jobs','faq','privacy','terms','sitemap','login',
+  'register','shop','store','products','pricing','testimonials',
+  'reviews','directions','map','hours','locations',
+];
+
+const BLACKLIST_HREF = [
+  'javascript','login','register','shop','cart','checkout',
+  'blog','news','gallery','portfolio','careers','jobs',
+  'privacy','terms','sitemap',
+];
+
+const COMMON_PATHS = [
+  '/contact', '/contact-us', '/contact_us', '/contactus',
+  '/get-in-touch', '/reach-us', '/reach-out',
+  '/connect', '/connect-with-us',
+  '/appointment', '/appointments', '/book-appointment', '/book',
+  '/schedule', '/schedule-appointment', '/schedule-consultation',
+  '/request-appointment', '/request-consultation', '/request-a-call',
+  '/new-patient', '/new-patients', '/new-patient-form',
+  '/patient-forms', '/patient-contact',
+  '/free-consultation', '/consultation',
+  '/inquiry', '/enquiry', '/feedback',
+  '/support', '/help', '/quote', '/get-a-quote',
+  '/refer', '/referral',
+];
+
+// Detect if current page has a usable contact form
 const HAS_CONTACT_FORM_JS = `
 (function() {
   var forms = Array.from(document.querySelectorAll('form') || []);
   for (var i = 0; i < forms.length; i++) {
     var f = forms[i];
     var hasTextarea = !!f.querySelector('textarea');
-    var hasEmail    = !!f.querySelector(
-      'input[type=email],[name*=email i],[id*=email i],[placeholder*=email i]');
-    var visible = Array.from(f.querySelectorAll('input,textarea,select'))
+    var hasEmail    = !!f.querySelector('input[type=email],[name*=email i],[id*=email i],[placeholder*=email i]');
+    var hasName     = !!f.querySelector('[name*=name i],[id*=name i],[placeholder*=name i]');
+    var hasPhone    = !!f.querySelector('input[type=tel],[name*=phone i],[name*=mobile i],[id*=phone i]');
+    var hasMsg      = !!f.querySelector('[name*=message i],[name*=comment i],[name*=subject i],[id*=message i],[placeholder*=message i]');
+    var visible     = Array.from(f.querySelectorAll('input,textarea,select'))
       .filter(function(e){ return e.offsetParent !== null && e.type !== 'hidden'; }).length;
-    var snippet = (f.id+' '+f.className+' '+(f.innerHTML||'').substring(0,1000)).toLowerCase();
-    var isPw = !!f.querySelector('input[type=password]');
-    var isSearch = snippet.indexOf('search') !== -1 && !hasEmail;
+    var html        = (f.outerHTML || '').toLowerCase().substring(0, 2000);
+    var isPw        = !!f.querySelector('input[type=password]');
+    var isSearch    = ((f.id||'').toLowerCase().indexOf('search') !== -1 ||
+                       (f.className||'').toLowerCase().indexOf('search') !== -1 ||
+                       html.indexOf('woocommerce') !== -1) && !hasEmail && !hasTextarea;
     if (isPw || isSearch) continue;
-    if ((hasTextarea || hasEmail) && visible >= 2) return true;
+    if (visible >= 1 && (hasEmail || hasTextarea || hasMsg || (hasName && hasPhone))) return true;
   }
-  // Formless inputs with email + textarea
-  var emails = Array.from(document.querySelectorAll(
-    'input[type=email],[name*=email i],[placeholder*=email i]'
+  // Formless inputs (React/Vue/Angular SPA)
+  var visibleInputs = Array.from(document.querySelectorAll(
+    'input:not([type=hidden]):not([type=submit]):not([type=button]):not([type=password]),' +
+    'textarea'
   )).filter(function(e){ return e.offsetParent !== null; });
-  var tas = Array.from(document.querySelectorAll('textarea'))
-    .filter(function(e){ return e.offsetParent !== null; });
-  return emails.length > 0 && tas.length > 0;
+  if (visibleInputs.length >= 2) {
+    var hasEmail = visibleInputs.some(function(e){
+      return e.type === 'email' ||
+        (e.name + ' ' + e.id + ' ' + (e.placeholder||'')).toLowerCase().indexOf('email') !== -1;
+    });
+    var hasTa = visibleInputs.some(function(e){ return e.tagName.toLowerCase() === 'textarea'; });
+    var hasMsg = visibleInputs.some(function(e){
+      return (e.name + ' ' + e.id + ' ' + (e.placeholder||'')).toLowerCase()
+        .match(/message|comment|subject|inquiry/);
+    });
+    if (hasEmail || hasTa || hasMsg) return true;
+  }
+  return false;
 })();
 `;
 
@@ -51,21 +109,25 @@ const SCAN_LINKS_JS = `
     var hrefL = href.toLowerCase();
     if (!href || href === '#' || href.startsWith('javascript:')
         || href.startsWith('mailto:') || href.startsWith('tel:')) return;
-    if (blackText.some(function(b){ return text === b || text.startsWith(b+' '); })) return;
-    if (blackHref.some(function(b){ return hrefL.indexOf('/'+b) !== -1; })) return;
+    if (blackText.some(function(b){ return text === b; })) return;
+    if (blackHref.some(function(b){ return hrefL.indexOf(b) !== -1; })) return;
     var score = 0;
     strongKws.forEach(function(k) {
-      if (text === k) score += 20;
-      else if (text.indexOf(k) !== -1) score += 8;
+      if (text === k) score += 25;
+      else if (text.indexOf(k) !== -1) score += 10;
     });
-    if (hrefKws.some(function(k){ return hrefL.indexOf(k) !== -1; })) score += 5;
+    hrefKws.forEach(function(k) {
+      if (hrefL.indexOf(k) !== -1) score += 8;
+    });
+    var inNav = !!a.closest('nav,header,[class*=menu],[class*=nav],[id*=menu],[id*=nav],[class*=header]');
+    if (inNav && score > 0) score += 6;
     if (score > 0 && !seen.has(href)) {
       seen.add(href);
       scored.push({ href: href, label: text || href, score: score });
     }
   });
   scored.sort(function(a,b){ return b.score - a.score; });
-  return scored.slice(0, 5).map(function(s){ return [s.href, s.label, s.score]; });
+  return scored.slice(0, 10).map(function(s){ return [s.href, s.label, s.score]; });
 })(arguments[0], arguments[1], arguments[2], arguments[3]);
 `;
 
@@ -75,15 +137,42 @@ async function waitForPageReady(driver, timeout = 6000) {
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
     try {
-      const state = await driver.executeScript('return document.readyState');
-      if (state === 'complete') return;
+      if (await driver.executeScript('return document.readyState') === 'complete') return;
     } catch (_) {}
     await sleep(200);
   }
 }
 
 function isContactUrl(url) {
-  return CONTACT_URL_WORDS.some(w => url.toLowerCase().includes(w));
+  const u = url.toLowerCase();
+  return CONTACT_URL_WORDS.some(w => u.includes(w));
+}
+
+async function checkPageForForm(driver) {
+  // Wait a bit for lazy-loaded content
+  await sleep(1200);
+  let hasForm = await driver.executeScript(HAS_CONTACT_FORM_JS).catch(() => false);
+  if (hasForm) return true;
+  // Scroll down and check again
+  try { await driver.executeScript('window.scrollTo(0, Math.min(600, document.body.scrollHeight * 0.4))'); }
+  catch (_) {}
+  await sleep(800);
+  hasForm = await driver.executeScript(HAS_CONTACT_FORM_JS).catch(() => false);
+  return !!hasForm;
+}
+
+async function tryNavigateTo(driver, absUrl, baseUrl) {
+  try {
+    const u1 = new URL(absUrl), u2 = new URL(baseUrl);
+    if (u1.host !== u2.host) return false; // stay on same domain
+    await driver.get(absUrl);
+    await waitForPageReady(driver, 6000);
+    const destUrl = await driver.getCurrentUrl();
+    const destPath = new URL(destUrl).pathname;
+    // If redirected to home/404, skip
+    if (destPath === '/' || destPath === '') return false;
+    return true;
+  } catch (_) { return false; }
 }
 
 async function findContactPage(driver) {
@@ -96,27 +185,35 @@ async function findContactPage(driver) {
     return true;
   }
 
-  // 2. Current page already has a contact form with message field? Use it directly
-  try {
-    const hasForm = await driver.executeScript(HAS_CONTACT_FORM_JS);
-    if (hasForm) {
-      console.log('      ✅ Contact form found on current page');
-      return true;
-    }
-  } catch (_) {}
+  // 2. Current page already has a contact form?
+  const homeHasForm = await driver.executeScript(HAS_CONTACT_FORM_JS).catch(() => false);
+  if (homeHasForm) {
+    console.log('      ✅ Contact form found on current page');
+    return true;
+  }
 
-  // 3. Look for contact page link
+  // 3. Scan nav/menu links — retry after scroll for JS-rendered navs
   let candidates = [];
-  try {
-    candidates = await driver.executeScript(
-      SCAN_LINKS_JS, STRONG_TEXT, HREF_KEYWORDS, BLACKLIST_TEXT, BLACKLIST_HREF
-    ) || [];
-  } catch (_) {}
+  for (let pass = 0; pass < 2; pass++) {
+    if (pass === 1) {
+      try { await driver.executeScript('window.scrollTo(0, 300)'); } catch (_) {}
+      await sleep(800);
+    }
+    try {
+      candidates = await driver.executeScript(
+        SCAN_LINKS_JS, STRONG_TEXT, HREF_KEYWORDS, BLACKLIST_TEXT, BLACKLIST_HREF
+      ) || [];
+    } catch (_) {}
+    if (candidates.length) break;
+  }
+  // Scroll back to top
+  try { await driver.executeScript('window.scrollTo(0,0)'); } catch (_) {}
 
   if (candidates.length) {
     console.log(`      🔗 Candidates: ${candidates.map(c => `"${c[1]}"(${c[2]})`).join(', ')}`);
   }
 
+  // 4. Try each candidate link
   for (const [href, label, score] of candidates) {
     try {
       let absUrl = href;
@@ -126,24 +223,60 @@ async function findContactPage(driver) {
       }
       const u1 = new URL(absUrl), u2 = new URL(baseUrl);
       if (u1.pathname === u2.pathname && u1.host === u2.host) continue;
-      if (BLACKLIST_HREF.some(b => absUrl.toLowerCase().includes('/' + b))) continue;
+      if (BLACKLIST_HREF.some(b => absUrl.toLowerCase().includes(b))) continue;
 
-      await driver.get(absUrl);
-      await waitForPageReady(driver, 6000);
+      const navigated = await tryNavigateTo(driver, absUrl, baseUrl);
+      if (!navigated) continue;
+
       const destUrl = await driver.getCurrentUrl();
-
-      // Verify destination has a contact form with message field
-      const destHasForm = await driver.executeScript(HAS_CONTACT_FORM_JS).catch(() => false);
-      if (isContactUrl(destUrl) || destHasForm) {
-        console.log(`      ✅ Navigated to: "${label}" (score=${score})`);
+      // If URL itself is a contact URL, stay here regardless of form
+      if (isContactUrl(destUrl)) {
+        console.log(`      ✅ On contact URL: "${label}" (score=${score})`);
+        return true;
+      }
+      // Check for form
+      const hasForm = await checkPageForForm(driver);
+      if (hasForm) {
+        console.log(`      ✅ Form found on: "${label}" (score=${score})`);
         return true;
       }
 
-      console.log(`      ⚠️ "${label}" has no contact form — going back`);
+      console.log(`      ⚠️ "${label}" — no form, going back`);
       await driver.navigate().back();
       await waitForPageReady(driver, 4000);
-    } catch (_) {}
+    } catch (_) {
+      try { await driver.navigate().back(); } catch (_2) {}
+      await waitForPageReady(driver, 3000).catch(() => {});
+    }
   }
+
+  // 5. Try common contact URL paths directly
+  try {
+    const base = new URL(baseUrl);
+    for (const p of COMMON_PATHS) {
+      const tryUrl = `${base.protocol}//${base.host}${p}`;
+      try {
+        await driver.get(tryUrl);
+        await waitForPageReady(driver, 5000);
+        const destUrl = await driver.getCurrentUrl();
+        const destPath = new URL(destUrl).pathname;
+        // Redirected to home = 404
+        if (destPath === '/' || destPath === '' || destPath === baseUrl) continue;
+        if (isContactUrl(destUrl)) {
+          console.log(`      ✅ Found via common path: ${p}`);
+          return true;
+        }
+        const hasForm = await checkPageForForm(driver);
+        if (hasForm) {
+          console.log(`      ✅ Form found via common path: ${p}`);
+          return true;
+        }
+      } catch (_) {}
+    }
+    // Nothing found — go back to base
+    await driver.get(baseUrl).catch(() => {});
+    await waitForPageReady(driver, 4000);
+  } catch (_) {}
 
   console.log('      ℹ️ No contact page found, using current page');
   return false;

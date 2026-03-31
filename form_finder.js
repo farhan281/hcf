@@ -52,7 +52,8 @@ async function findContactForm(driver) {
           var PLUGINS = ['wpcf7','wpforms','gform','gravityform','ninja-form','formidable',
                          'elementor-form','hs-form','hubspot','contact-form','cf7'];
           var url = window.location.href.toLowerCase();
-          var onContact = ['contact','inquiry','enquiry','feedback','reach','touch']
+          var onContact = ['contact','inquiry','enquiry','feedback','reach','touch',
+            'appointment','schedule','book','consult','new-patient','patient','request','quote']
             .some(function(w){ return url.indexOf(w) !== -1; });
           return Array.from(document.querySelectorAll('form') || []).map(function(f, i) {
             var inputs = Array.from(f.querySelectorAll('input,textarea,select'));
@@ -63,22 +64,29 @@ async function findContactForm(driver) {
             var html = (f.outerHTML || '').toLowerCase().substring(0, 5000);
             var hasEmail    = !!f.querySelector('input[type=email],[name*=email i],[id*=email i],[placeholder*=email i]');
             var hasTextarea = !!f.querySelector('textarea');
+            var hasName     = !!f.querySelector('[name*=name i],[id*=name i],[placeholder*=name i]');
+            var hasPhone    = !!f.querySelector('input[type=tel],[name*=phone i],[name*=mobile i],[id*=phone i]');
+            var hasMsg      = !!f.querySelector('[name*=message i],[name*=comment i],[name*=subject i],[id*=message i]');
             var hasSubmit   = !!f.querySelector('button[type=submit],input[type=submit],button:not([type])');
             var hasPassword = !!f.querySelector('input[type=password]');
-            var isSearch    = (f.id||'').toLowerCase().indexOf('search') !== -1 ||
-                              (f.className||'').toLowerCase().indexOf('search') !== -1;
+            var isSearch    = ((f.id||'').toLowerCase().indexOf('search') !== -1 ||
+                              (f.className||'').toLowerCase().indexOf('search') !== -1) &&
+                              !hasEmail && !hasTextarea;
             var isPlugin    = PLUGINS.some(function(p){ return html.indexOf(p) !== -1; });
             var score = 0;
             if (hasEmail)    score += 30;
             if (hasTextarea) score += 25;
+            if (hasMsg)      score += 15;
+            if (hasName)     score += 10;
+            if (hasPhone)    score += 10;
             if (hasSubmit)   score += 15;
             if (visible.length >= 3) score += 10;
             else if (visible.length >= 2) score += 5;
+            else if (visible.length >= 1) score += 2;
             if (isPlugin)    score += 20;
-            if (onContact)   score += 15;
+            if (onContact)   score += 20;
             if (hasPassword) score -= 50;
             if (isSearch)    score -= 40;
-            if (visible.length <= 1 && !hasEmail && !hasTextarea) score -= 20;
             return { idx: i, score: score, visible: visible.length,
                      hasEmail: hasEmail, hasTextarea: hasTextarea,
                      hasSubmit: hasSubmit, hasPassword: hasPassword, isSearch: isSearch };
@@ -99,7 +107,7 @@ async function findContactForm(driver) {
       // Pick best valid form
       for (const f of formData) {
         if (f.hasPassword || f.isSearch) continue;
-        if (f.hasEmail || f.hasTextarea || f.visible >= 2) {
+        if (f.score > 0 && (f.hasEmail || f.hasTextarea || f.visible >= 1)) {
           const form = allForms[f.idx];
           if (form) {
             console.log(`      ✅ Selected form ${f.idx+1} (score=${f.score})`);
