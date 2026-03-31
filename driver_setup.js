@@ -86,9 +86,6 @@ async function makeDriver() {
     '--disable-blink-features=AutomationControlled',
     '--no-sandbox',
     '--disable-dev-shm-usage',
-    '--ignore-certificate-errors',
-    '--allow-running-insecure-content',
-    '--ignore-ssl-errors',
     `--user-data-dir=${profileDir}`,
   );
   if (headless) opts.addArguments('--headless=new', '--disable-gpu');
