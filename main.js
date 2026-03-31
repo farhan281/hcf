@@ -20,7 +20,7 @@ const rand  = (a, b) => Math.random() * (b - a) + a;
 
 // ── Load URLs ─────────────────────────────────────────────────────────────────
 if (!fs.existsSync(URL_FILE)) { console.log(`⚠️ ${URL_FILE} not found!`); process.exit(1); }
-const urls = fs.readFileSync(URL_FILE, 'utf8').split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#') && /^https?:\/\//i.test(l));
+const urls = fs.readFileSync(URL_FILE, 'utf8').split('\n').map(l => l.trim()).filter(Boolean);
 console.log(`🧩 Loaded ${urls.length} URLs`);
 fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
