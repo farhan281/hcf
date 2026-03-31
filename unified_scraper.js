@@ -308,12 +308,9 @@ async function sendToSheets(data) {
         const response = await fetch(GOOGLE_SHEETS_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rows: [data] })
+            body: JSON.stringify({ type: 'map', rows: [data] })
         });
-        
-        if (response.ok) {
-            return true;
-        }
+        if (response.ok) return true;
         return false;
     } catch (error) {
         return false;
