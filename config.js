@@ -35,20 +35,25 @@ function getNextContact() {
     phone_local:        '4085209495',
     company:            'Perception System',
     website:            'https://www.perceptionsystem.com/',
-    subject:            'Work Now, Pay Later – scale with zero upfront risk',
+    subject:            'White-Label Dev & AI Services for Your Agency Clients',
     budget:             'Flexible',
     address:            'Ahmedabad, Gujarat, India',
-    message: `Hello Team,
+    message: `Hi Team,
 
-We've been following your work—great innovation!
+I came across your agency and love the work you're doing for your clients!
 
-At Perception System (trusted by Dubai Govt. & Stanford University), we help businesses grow with:
-• Web & Mobile App Development (CRM, ERP, SaaS)
-• AI-powered solutions & process automation
-• Pay-after-results Digital Marketing
-• White-label SEO & SMM partnerships
+I'm reaching out from Perception System — a technology partner trusted by agencies like yours to deliver white-label services that you can resell under your own brand:
 
-Would love to explore collaboration opportunities.
+• White-Label Web & Mobile App Development (CRM, ERP, SaaS, custom builds)
+• AI-powered automation & chatbot solutions for your clients
+• White-Label SEO, SMM & Pay-after-results Digital Marketing
+• Dedicated dev teams you can plug into your existing projects
+
+We work quietly in the background — your clients never know we exist. You get the credit, we do the heavy lifting.
+
+Trusted by agencies serving Dubai Govt., Stanford University & 500+ global clients.
+
+Would love to explore how we can help you scale without hiring overhead.
 
 Warm regards,
 ${full}
