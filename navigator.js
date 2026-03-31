@@ -261,15 +261,20 @@ async function findContactPage(driver) {
   // 5. Try common contact URL paths directly
   try {
     const base = new URL(baseUrl);
+    // Use the actual current host (may have redirected www <-> non-www)
+    const currentUrl = await driver.getCurrentUrl().catch(() => baseUrl);
+    const currentHost = new URL(currentUrl);
     for (const p of COMMON_PATHS) {
-      const tryUrl = `${base.protocol}//${base.host}${p}`;
+      const tryUrl = `${currentHost.protocol}//${currentHost.host}${p}`;
       try {
         await driver.get(tryUrl);
         await waitForPageReady(driver, 5000);
         const destUrl = await driver.getCurrentUrl();
         const destPath = new URL(destUrl).pathname;
-        // Redirected to home = 404
-        if (destPath === '/' || destPath === '' || destPath === baseUrl) continue;
+        if (destPath === '/' || destPath === '') continue;
+        // Same path as base = 404 redirect
+        if (normalizeHost(new URL(destUrl).host) === normalizeHost(base.host) &&
+            new URL(destUrl).pathname === base.pathname) continue;
         if (isContactUrl(destUrl)) {
           console.log(`      ✅ Found via common path: ${p}`);
           return true;
@@ -281,7 +286,6 @@ async function findContactPage(driver) {
         }
       } catch (_) {}
     }
-    // Nothing found — go back to base
     await driver.get(baseUrl).catch(() => {});
     await waitForPageReady(driver, 4000);
   } catch (_) {}
