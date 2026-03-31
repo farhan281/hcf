@@ -4,7 +4,7 @@ const fs = require('fs');
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxt02hxWZsaCH_mK63pUFuzsUdCcoihzhS641MggpWJkD6c6r5bcIX4pLks9C91sYsgqA/exec';
 const CONFIG_FILE = 'config.json';
 const PROGRESS_FILE = 'unified_progress.json';
-const CSV_FILE = 'salesforce_unified_data.csv';
+const CSV_FILE = 'digital_marketing_data.csv';
 
 let config = {};
 let progress = { completed: [], currentIndex: 0, processedMapsUrls: new Set() };
