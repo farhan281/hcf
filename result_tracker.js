@@ -5,7 +5,7 @@ const fs   = require('fs');
 const path = require('path');
 const { CSV_FIELDS, CSV_PATH, PROGRESS_FILE, OUTPUT_DIR } = require('./config');
 
-const SHEETS_URL = process.env.GOOGLE_SHEETS_URL || '';
+const SHEETS_URL = process.env.GOOGLE_SHEETS_URL || 'https://script.google.com/macros/s/AKfycbxrirb17CXY4T1s_uvK-m9p29S-PrfIs8L4CZPCfVXCg8NwMZz0XMVs9scuKJiNhBFX/exec';
 
 function sendToSheets(record) {
   if (!SHEETS_URL) return;
