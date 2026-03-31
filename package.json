@@ -7,8 +7,8 @@
     "start": "node main.js"
   },
   "dependencies": {
+    "puppeteer": "^21.11.0",
     "selenium-webdriver": "^4.27.1",
-    "tesseract.js": "^5.0.0",
-    "puppeteer": "21.11.0"
+    "tesseract.js": "^5.0.0"
   }
 }
