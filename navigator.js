@@ -146,6 +146,31 @@ async function findContactPage(driver) {
     } catch (_) {}
   }
 
+  // Fallback: try common contact URL paths directly
+  try {
+    const base = new URL(baseUrl);
+    const commonPaths = ['/contact','/contact-us','/contact_us','/get-in-touch',
+      '/appointment','/appointments','/new-patient','/new-patients','/request-appointment'];
+    for (const p of commonPaths) {
+      try {
+        const tryUrl = `${base.protocol}//${base.host}${p}`;
+        await driver.get(tryUrl);
+        await waitForPageReady(driver, 5000);
+        await sleep(1000);
+        const destUrl = await driver.getCurrentUrl();
+        const destPath = new URL(destUrl).pathname;
+        if (destPath === '/' || destPath === base.pathname) continue;
+        const destHasForm = await driver.executeScript(HAS_CONTACT_FORM_JS).catch(() => false);
+        if (isContactUrl(destUrl) || destHasForm) {
+          console.log(`      ✅ Found via common path: ${p}`);
+          return true;
+        }
+      } catch (_) {}
+    }
+    await driver.get(baseUrl).catch(() => {});
+    await waitForPageReady(driver, 4000);
+  } catch (_) {}
+
   console.log('      ℹ️ No contact page found, using current page');
   return false;
 }
