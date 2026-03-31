@@ -61,40 +61,47 @@ const COMMON_PATHS = [
 // Detect if current page has a usable contact form
 const HAS_CONTACT_FORM_JS = `
 (function() {
+  var PLUGINS = ['wpcf7','wpforms','gform','gravityform','ninja-form','formidable',
+                 'elementor-form','hs-form','hubspot','contact-form','cf7','nf-form','fluentform'];
   var forms = Array.from(document.querySelectorAll('form') || []);
   for (var i = 0; i < forms.length; i++) {
     var f = forms[i];
-    var hasTextarea = !!f.querySelector('textarea');
+    var html     = (f.outerHTML || '').toLowerCase().substring(0, 3000);
+    var isPlugin = PLUGINS.some(function(p){ return html.indexOf(p) !== -1; });
+    var hasTextarea = !!f.querySelector('textarea:not([name*=recaptcha i]):not([id*=recaptcha i])');
     var hasEmail    = !!f.querySelector('input[type=email],[name*=email i],[id*=email i],[placeholder*=email i]');
+    var hasPhone    = !!f.querySelector('input[type=tel],[name*=phone i],[name*=mobile i],[id*=phone i],[placeholder*=phone i]');
+    var hasMsg      = !!f.querySelector('[name*=message i],[name*=comment i],[name*=subject i],[id*=message i],[placeholder*=message i],[placeholder*=subject i]');
     var hasName     = !!f.querySelector('[name*=name i],[id*=name i],[placeholder*=name i]');
-    var hasPhone    = !!f.querySelector('input[type=tel],[name*=phone i],[name*=mobile i],[id*=phone i]');
-    var hasMsg      = !!f.querySelector('[name*=message i],[name*=comment i],[name*=subject i],[id*=message i],[placeholder*=message i]');
     var visible     = Array.from(f.querySelectorAll('input,textarea,select'))
       .filter(function(e){ return e.offsetParent !== null && e.type !== 'hidden'; }).length;
-    var html        = (f.outerHTML || '').toLowerCase().substring(0, 2000);
-    var isPw        = !!f.querySelector('input[type=password]');
-    var isSearch    = ((f.id||'').toLowerCase().indexOf('search') !== -1 ||
-                       (f.className||'').toLowerCase().indexOf('search') !== -1 ||
-                       html.indexOf('woocommerce') !== -1) && !hasEmail && !hasTextarea;
+    var isPw     = !!f.querySelector('input[type=password]');
+    var isSearch = ((f.id||'').toLowerCase().indexOf('search') !== -1 ||
+                    (f.className||'').toLowerCase().indexOf('search') !== -1) && !hasEmail && !hasTextarea;
     if (isPw || isSearch) continue;
-    if (visible >= 1 && (hasEmail || hasTextarea || hasMsg || (hasName && hasPhone))) return true;
+    // Plugin form with any visible inputs = contact form
+    if (isPlugin && visible >= 2) return true;
+    // Has email or textarea with at least 1 visible field
+    if (visible >= 1 && (hasEmail || hasTextarea || hasMsg)) return true;
+    // Has name + phone (appointment forms)
+    if (visible >= 2 && hasName && hasPhone) return true;
   }
   // Formless inputs (React/Vue/Angular SPA)
   var visibleInputs = Array.from(document.querySelectorAll(
     'input:not([type=hidden]):not([type=submit]):not([type=button]):not([type=password]),' +
-    'textarea'
+    'textarea:not([name*=recaptcha i])'
   )).filter(function(e){ return e.offsetParent !== null; });
   if (visibleInputs.length >= 2) {
-    var hasEmail = visibleInputs.some(function(e){
-      return e.type === 'email' ||
-        (e.name + ' ' + e.id + ' ' + (e.placeholder||'')).toLowerCase().indexOf('email') !== -1;
+    var hasE = visibleInputs.some(function(e){
+      return e.type==='email' ||
+        (e.name+' '+e.id+' '+(e.placeholder||'')).toLowerCase().indexOf('email')!==-1;
     });
-    var hasTa = visibleInputs.some(function(e){ return e.tagName.toLowerCase() === 'textarea'; });
-    var hasMsg = visibleInputs.some(function(e){
-      return (e.name + ' ' + e.id + ' ' + (e.placeholder||'')).toLowerCase()
-        .match(/message|comment|subject|inquiry/);
+    var hasTa = visibleInputs.some(function(e){ return e.tagName.toLowerCase()==='textarea'; });
+    var hasM  = visibleInputs.some(function(e){
+      return (e.name+' '+e.id+' '+(e.placeholder||'')).toLowerCase()
+        .match(/message|comment|subject|inquiry|enquiry/);
     });
-    if (hasEmail || hasTa || hasMsg) return true;
+    if (hasE || hasTa || hasM) return true;
   }
   return false;
 })();
@@ -161,15 +168,19 @@ async function checkPageForForm(driver) {
   return !!hasForm;
 }
 
+function normalizeHost(host) {
+  return host.replace(/^www\./, '');
+}
+
 async function tryNavigateTo(driver, absUrl, baseUrl) {
   try {
     const u1 = new URL(absUrl), u2 = new URL(baseUrl);
-    if (u1.host !== u2.host) return false; // stay on same domain
+    // Allow www vs non-www on same domain
+    if (normalizeHost(u1.host) !== normalizeHost(u2.host)) return false;
     await driver.get(absUrl);
     await waitForPageReady(driver, 6000);
     const destUrl = await driver.getCurrentUrl();
     const destPath = new URL(destUrl).pathname;
-    // If redirected to home/404, skip
     if (destPath === '/' || destPath === '') return false;
     return true;
   } catch (_) { return false; }
