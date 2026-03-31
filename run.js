@@ -10,6 +10,19 @@ const FILLER_DONE   = path.join(__dirname, 'form_results', 'progress.txt');
 
 fs.mkdirSync(path.join(__dirname, 'form_results'), { recursive: true });
 
+// ── Already filled URLs from results CSV ────────────────────────────────────
+function getFilledUrls() {
+  const resultsCsv = path.join(__dirname, 'form_results', 'contact_results.csv');
+  if (!fs.existsSync(resultsCsv)) return new Set();
+  const filled = new Set();
+  const lines = fs.readFileSync(resultsCsv, 'utf8').split('\n').filter(Boolean);
+  for (let i = 1; i < lines.length; i++) {
+    const url = lines[i].split(',')[0].replace(/^"|"$/g, '').trim();
+    if (url) filled.add(url);
+  }
+  return filled;
+}
+
 // ── Parse CSV and extract new URLs not yet in retry_urls.txt ─────────────────
 function extractNewUrls() {
   if (!fs.existsSync(CSV_PATH)) return [];
