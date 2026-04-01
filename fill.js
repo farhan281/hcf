@@ -81,7 +81,7 @@ function runFiller() {
   const child = spawn('node', ['main.js'], { cwd: __dirname, stdio: 'inherit' });
   child.on('exit', () => {
     fillerRunning = false;
-    console.log('\n⏳ Filler done — waiting for new URLs...');
+    console.log('\n⏳ Filler done — watching for new URLs...');
   });
 }
 
