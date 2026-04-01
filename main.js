@@ -183,11 +183,23 @@ async function processUrl(driver, url, record, contact) {
 
 // ── Main loop ─────────────────────────────────────────────────────────────────
 (async () => {
-  for (let idx = 0; idx < urls.length; idx++) {
-    if (idx < startIndex) continue;
+  let idx = startIndex;
 
-    const url = urls[idx];
-    console.log(`\n🟢 [${idx+1}/${urls.length}] ${url}`);
+  while (true) {
+    // Reload URLs from file on every iteration to pick up newly added URLs
+    const allUrls = fs.existsSync(URL_FILE)
+      ? fs.readFileSync(URL_FILE, 'utf8').split('\n').map(l => l.trim()).filter(Boolean)
+      : [];
+
+    if (idx >= allUrls.length) {
+      // No more URLs — wait for new ones
+      process.stdout.write('.');
+      await sleep(5000);
+      continue;
+    }
+
+    const url = allUrls[idx];
+    console.log(`\n🟢 [${idx+1}/${allUrls.length}] ${url}`);
 
     for (let attempt = 1; attempt <= MAX_CAPTCHA_RETRIES + 1; attempt++) {
       const record = Object.fromEntries(CSV_FIELDS.map(f => [f, '']));
