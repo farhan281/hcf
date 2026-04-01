@@ -312,6 +312,9 @@ async function fillAllFields(driver, form, contact, usedFields, filled, failed) 
       // inline getLabel
       function getLabel(el) {
         if (el.id) { var l=document.querySelector('label[for="'+el.id+'"]'); if(l) return l.innerText.trim(); }
+        // Also check by aria-labelledby id
+        var lblId = el.getAttribute('aria-labelledby') || (el.id ? el.id+'_label' : '');
+        if (lblId) { var ll=document.getElementById(lblId); if(ll) return ll.innerText.trim(); }
         var aria=el.getAttribute('aria-label'); if(aria) return aria.trim();
         var lby=el.getAttribute('aria-labelledby');
         if(lby){ var parts=lby.split(/\s+/).map(function(id){ var lb=document.getElementById(id); return lb?lb.innerText.trim():''; }).filter(Boolean); if(parts.length) return parts.join(' '); }
