@@ -332,7 +332,7 @@ async function fillAllFields(driver, form, contact, usedFields, filled, failed) 
       }
       var inputs=Array.from(form.querySelectorAll(
         'input:not([type=hidden]):not([type=submit]):not([type=button]):not([type=image]):not([type=reset]):not([type=file]),textarea,select'
-      )).filter(function(el){return el.offsetParent!==null;});
+      )).filter(function(el){return el.offsetParent!==null || el.closest('[class*=hidden_container]') || el.closest('[class*=frm_hidden]');});
       return inputs.map(function(el){
         var label=getLabel(el);
         var ctx=(label+' '+el.name+' '+el.id+' '+(el.placeholder||'')+' '+
