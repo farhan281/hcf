@@ -14,7 +14,7 @@ let _proc = null, _ready = false;
 
 function getWhisper() {
   if (_proc && !_proc.killed) return _proc;
-  const py  = process.env.PYTHON || '/home/ubuntu/Captch-Solver-Contact-Form/.venv/bin/python';
+  const py  = process.env.PYTHON || '/usr/bin/python3';
   const scr = path.join(__dirname, '..', 'whisper_server.py');
   console.log('      🔄 Starting Whisper...');
   _proc  = spawn(py, [scr], { stdio: ['pipe','pipe','pipe'] });
