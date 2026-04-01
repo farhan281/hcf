@@ -1,9 +1,10 @@
 {
   "completed": [
     "New York-Digital marketing agency",
-    "New York-SEO agency"
+    "New York-SEO agency",
+    "New York-Social media marketing agency"
   ],
-  "currentIndex": 1,
+  "currentIndex": 2,
   "processedMapsUrls": [
     "https://www.google.com/maps/place/Hunter+Digital+Marketing+Agency+-+Social+Media+%26+Search+Marketing+Agency+in+New+York/data=!4m7!3m6!1s0x89c288c707ca5129:0xb4c46c0ddce1cc86!8m2!3d40.7450692!4d-73.9934267!16s%2Fg%2F1td4l13m!19sChIJKVHKB8eIwokRhszh3A1sxLQ?authuser=0&hl=en&rclk=1",
     "https://www.google.com/maps/place/Organic+Digital+Marketing/data=!4m7!3m6!1s0x89c25988509b84b7:0xd56e5c5df962c777!8m2!3d40.7759725!4d-73.9478532!16s%2Fg%2F11h39lwhx0!19sChIJt4SbUIhZwokRd8di-V1cbtU?authuser=0&hl=en&rclk=1",
@@ -281,6 +282,7 @@
     "https://www.google.com/maps/place/Code+and+Theory/data=!4m7!3m6!1s0x89c2598e91e40fad:0x47cf32a972dde96f!8m2!3d40.7128358!4d-74.0131762!16s%2Fg%2F1w6_pr0t!19sChIJrQ_kkY5ZwokRb-ndcqkyz0c?authuser=0&hl=en&rclk=1",
     "https://www.google.com/maps/place/Digital+Seven/data=!4m7!3m6!1s0x89c25941dedbcc13:0x2d8021b0d6d8af37!8m2!3d40.75536!4d-73.9935211!16s%2Fg%2F11cnsnvmb5!19sChIJE8zb3kFZwokRN6_Y1rAhgC0?authuser=0&hl=en&rclk=1",
     "https://www.google.com/maps/place/Squarevolt+Digital/data=!4m7!3m6!1s0x89c25a263f396c99:0xcbf8cc2922426d64!8m2!3d40.7139743!4d-73.996116!16s%2Fg%2F11rsdzhs8f!19sChIJmWw5PyZawokRZG1CIinM-Ms?authuser=0&hl=en&rclk=1",
-    "https://www.google.com/maps/place/Hispanic+Advertising+Agency/data=!4m7!3m6!1s0x89c259a66fd02edd:0x5e5a51d0720b9815!8m2!3d40.7443349!4d-73.9880763!16s%2Fg%2F1hd_n28n3!19sChIJ3S7Qb6ZZwokRFZgLctBRWl4?authuser=0&hl=en&rclk=1"
+    "https://www.google.com/maps/place/Hispanic+Advertising+Agency/data=!4m7!3m6!1s0x89c259a66fd02edd:0x5e5a51d0720b9815!8m2!3d40.7443349!4d-73.9880763!16s%2Fg%2F1hd_n28n3!19sChIJ3S7Qb6ZZwokRFZgLctBRWl4?authuser=0&hl=en&rclk=1",
+    "https://www.google.com/maps/place/Hoda+Elamir+-+Social+Media+Marketing/data=!4m7!3m6!1s0x89c259bf45f0956b:0x8806f5d19a2e4ca0!8m2!3d46.423669!4d-129.9427086!16s%2Fg%2F11fj9f4811!19sChIJa5XwRb9ZwokRoEwumtH1Bog?authuser=0&hl=en&rclk=1"
   ]
 }
