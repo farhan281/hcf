@@ -253,6 +253,8 @@ async function processUrl(driver, url, record, contact) {
       await sleep(rand(3000, 6000));
       break;
     }
+
+    idx++;
   }
 
   saveResults(results);
