@@ -141,7 +141,7 @@ async function processUrl(driver, url, record, contact) {
 
   // Step 8: Handle post-submit CAPTCHA (some sites show captcha after submit)
   const postCaptcha = await handleCaptcha(driver, record, 'post-submit', form, CAPTCHA_WAIT_TIMEOUT);
-  if (postCaptcha === 'clear' && record.captcha_status && !record.captcha_status.includes('Not present')) {
+  if (postCaptcha === 'clear' && record.captcha_status && record.captcha_status.includes('post-submit')) {
     // Captcha was present and solved — submit again
     console.log('   🔄 Post-submit captcha solved — resubmitting...');
     await sleep(rand(1000, 2000));
