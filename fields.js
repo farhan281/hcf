@@ -33,58 +33,59 @@ const CAPTCHA_PATTERNS = [
 // ── Field definitions — order matters (most specific first) ───────────────────
 // Each entry: [fieldKey, [...keywords]]
 const FIELD_DEFS = [
-  // Name fields
   ['first_name', [
     'first name','firstname','first-name','fname','given name','given-name',
-    'forename','your first','first *','first_name',
+    'forename','your first name','first_name','prénom','nombre',
   ]],
   ['last_name', [
     'last name','lastname','last-name','lname','surname','family name',
-    'family-name','your last','last *','last_name',
+    'family-name','your last name','last_name','nom','apellido',
   ]],
   ['full_name', [
     'full name','fullname','full-name','your name','your full name',
-    'contact name','contactname','name *','your name *',
+    'contact name','contactname','name *','your name *','full_name',
+    'complete name','legal name',
   ]],
-
-  // Contact fields
   ['email', [
     'email','e-mail','email address','e-mail address','your email',
     'work email','business email','company email','email *','correo',
-    'emailaddress','email_address',
+    'emailaddress','email_address','mail address','your e-mail',
+    'email id','e mail','courriel',
   ]],
   ['phone', [
     'phone','phone number','phone no','phone_number','phonenumber',
     'mobile','mobile number','mobile no','cell','cell phone','cellphone',
     'telephone','tel','contact number','contact no','whatsapp',
     'mob','ph','ph no','phno','your number','your phone','contact_no',
+    'phone *','mobile *','téléphone','telefono',
   ]],
-
-  // Company fields
   ['company', [
     'company','company name','companyname','company_name',
     'organization','organisation','business','business name',
     'firm','agency','agency name','brand','brand name',
-    'practice','clinic','hospital','school','institute',
+    'practice','clinic','hospital','school','institute','employer',
+    'your company','your organization','entreprise','empresa',
   ]],
   ['website', [
     'website','web site','website url','your website','company website',
     'url','site','homepage','web address','webaddress','site url',
+    'your url','your site','web','site web',
   ]],
   ['job_title', [
     'job title','jobtitle','job_title','job role','position','role',
     'designation','occupation','title','your title','your role',
-    'specialty','speciality','profession',
+    'specialty','speciality','profession','your position','job function',
+    'what do you do','your job','work title',
   ]],
-
-  // Message fields
   ['subject', [
     'subject','subject line','email subject','message subject',
     'topic','regarding','re:','inquiry subject','enquiry subject',
     'purpose','reason','service','interested in','interest',
     'how can we help','how can i help you','what can we help',
     'type of inquiry','type of enquiry','inquiry type','service type',
-    'project type','what are you looking for',
+    'project type','what are you looking for','nature of inquiry',
+    'i am interested in','looking for','need help with',
+    'what brings you here','department',
   ]],
   ['message', [
     'message','your message','write your message','enter message',
@@ -93,26 +94,24 @@ const FIELD_DEFS = [
     'notes','additional','additional info','additional information',
     'body','content','requirements','project requirements',
     'inquiry','enquiry','concern','request','info','information',
-    'question','questions','how can we help','write to us',
-    'what do you need','what are you looking for','brief',
-    'project brief','about your project','about project',
+    'question','questions','write to us','brief','project brief',
+    'about your project','about project','your inquiry','your enquiry',
+    'leave a message','send a message','write us','drop us',
+    'anything else','other information','more details',
   ]],
-
-  // Optional fields
   ['budget', [
     'budget','project budget','your budget','estimated budget',
-    'price range','investment','spend','how much',
+    'price range','investment','spend','how much','approximate budget',
+    'budget range','monthly budget','annual budget',
   ]],
   ['address', [
     'address','street address','your address','mailing address',
-    'location','city','state','country','zip','postal','postal code',
-    'region','province',
+    'city','state','country','zip','postal','postal code',
+    'region','province','location','street','town',
   ]],
 ];
 
-// ── Smart field matcher ───────────────────────────────────────────────────────
 function matchField(ctx, tag, type) {
-  // Type-based shortcuts
   if (tag === 'textarea') return 'message';
   if (type === 'email')   return 'email';
   if (type === 'tel')     return 'phone';
@@ -122,67 +121,93 @@ function matchField(ctx, tag, type) {
     return null;
   }
 
-  // Priority checks — most specific first
-  // Email (before company — 'company email' → email)
-  if (ctx.match(/\bemail\b/) || ctx.includes('e-mail')) return 'email';
+  // Email — before company ('company email' → email)
+  if (ctx.match(/\bemail\b/) || ctx.includes('e-mail') || ctx.includes('e mail') ||
+      ctx.includes('courriel') || ctx.includes('correo')) return 'email';
 
-  // Company (before name — 'company name' → company)
+  // Company — before name ('company name' → company)
   if (ctx.match(/\bcompany\b/) || ctx.match(/\borganiz/) ||
       ctx.match(/\bbusiness\b/) || ctx.match(/\bfirm\b/) ||
-      ctx.match(/\bagency\b/)) return 'company';
+      ctx.match(/\bagency\b/)   || ctx.match(/\bemployer\b/) ||
+      ctx.match(/\binstitut/)   || ctx.includes('brand name') ||
+      ctx.includes('empresa')   || ctx.includes('entreprise')) return 'company';
 
   // Phone
-  if (ctx.match(/\bphone\b/) || ctx.match(/\bmobile\b/) ||
-      ctx.match(/\btel\b/) || ctx.match(/\bcell\b/) ||
-      ctx.match(/\bwhatsapp\b/) || ctx.match(/\bmob\b/)) return 'phone';
+  if (ctx.match(/\bphone\b/)    || ctx.match(/\bmobile\b/) ||
+      ctx.match(/\btel\b/)      || ctx.match(/\bcell\b/) ||
+      ctx.match(/\bwhatsapp\b/) || ctx.match(/\bmob\b/) ||
+      ctx.includes('contact number') || ctx.includes('phone no') ||
+      ctx.includes('mobile no') || ctx.includes('ph no') ||
+      ctx.includes('telephone') || ctx.includes('téléphone') ||
+      ctx.includes('telefono')  || ctx.includes('phonenumber')) return 'phone';
 
-  // First/Last name (before full name)
-  if (ctx.match(/\bfirst\b/) && (ctx.match(/name/) || !ctx.match(/last|email|phone|company|message/))) return 'first_name';
-  if (ctx.match(/\blast\b/)  && (ctx.match(/name/) || !ctx.match(/first|email|phone|company|message/))) return 'last_name';
-  if (ctx.includes('fname') || ctx.includes('firstname') || ctx.includes('first_name') ||
-      ctx.includes('given name') || ctx.includes('forename') || ctx.includes('given-name')) return 'first_name';
-  if (ctx.includes('lname') || ctx.includes('lastname') || ctx.includes('last_name') ||
-      ctx.includes('surname') || ctx.includes('family name') || ctx.includes('family-name')) return 'last_name';
+  // First name — 'First' alone OR 'first name'
+  if (ctx.match(/\bfirst\b/)    || ctx.includes('fname') ||
+      ctx.includes('firstname') || ctx.includes('first_name') ||
+      ctx.includes('given name')|| ctx.includes('forename') ||
+      ctx.includes('given-name')|| ctx.includes('prénom') ||
+      ctx.includes('nombre'))     return 'first_name';
+
+  // Last name — 'Last' alone OR 'last name'
+  if (ctx.match(/\blast\b/)     || ctx.includes('lname') ||
+      ctx.includes('lastname')  || ctx.includes('last_name') ||
+      ctx.includes('surname')   || ctx.includes('family name') ||
+      ctx.includes('family-name')|| ctx.includes('apellido')) return 'last_name';
 
   // Full name
   if (ctx.includes('full name') || ctx.includes('fullname') ||
       ctx.includes('your name') || ctx.includes('contact name') ||
-      ctx.match(/^name\b/) || ctx.match(/\bname\s*\*?\s*$/)) return 'full_name';
-  // Generic 'name' alone
-  if (ctx.match(/\bname\b/) && !ctx.match(/company|brand|agency|business|domain|file|user|login/)) return 'full_name';
+      ctx.includes('complete name') || ctx.includes('legal name') ||
+      ctx.match(/^name[\s\*]*$/) || ctx.match(/\bname\s*\*?\s*$/)) return 'full_name';
+  // Generic 'name' — not company/brand/domain
+  if (ctx.match(/\bname\b/) &&
+      !ctx.match(/company|brand|agency|business|domain|file|user|login|product|page/)) return 'full_name';
 
   // Website
   if (ctx.match(/\bwebsite\b/) || ctx.match(/\burl\b/) ||
-      ctx.includes('web address') || ctx.includes('homepage')) return 'website';
+      ctx.includes('web address') || ctx.includes('homepage') ||
+      ctx.includes('site web')   || ctx.includes('your site')) return 'website';
 
   // Job title
   if (ctx.includes('job title') || ctx.includes('jobtitle') ||
-      ctx.match(/\bdesignation\b/) || ctx.match(/\bposition\b/) ||
-      ctx.match(/\boccupation\b/)) return 'job_title';
+      ctx.match(/\bdesignation\b/) || ctx.match(/\boccupation\b/) ||
+      ctx.includes('your role')   || ctx.includes('your position') ||
+      ctx.includes('work title')  || ctx.includes('job function') ||
+      (ctx.match(/\bposition\b/) && !ctx.match(/apply|hiring|open/)) ||
+      (ctx.match(/\brole\b/)     && !ctx.match(/apply|hiring/))) return 'job_title';
 
-  // Subject
-  if (ctx.match(/\bsubject\b/) || ctx.match(/\btopic\b/) ||
-      ctx.match(/\bregarding\b/) || ctx.includes('interested in') ||
+  // Subject / inquiry type
+  if (ctx.match(/\bsubject\b/)  || ctx.match(/\btopic\b/) ||
+      ctx.match(/\bregarding\b/)|| ctx.includes('interested in') ||
       ctx.includes('service type') || ctx.includes('inquiry type') ||
-      ctx.includes('type of') || ctx.includes('how can we help') ||
-      ctx.includes('what can we')) return 'subject';
+      ctx.includes('enquiry type') || ctx.includes('type of inquiry') ||
+      ctx.includes('type of enquiry') || ctx.includes('nature of') ||
+      ctx.includes('how can we help') || ctx.includes('what can we') ||
+      ctx.includes('looking for') || ctx.includes('need help with') ||
+      ctx.includes('i am interested') || ctx.includes('department') ||
+      ctx.includes('what brings you')) return 'subject';
 
   // Budget
-  if (ctx.match(/\bbudget\b/) || ctx.includes('price range') ||
-      ctx.match(/\binvestment\b/)) return 'budget';
+  if (ctx.match(/\bbudget\b/)   || ctx.includes('price range') ||
+      ctx.match(/\binvestment\b/) || ctx.includes('how much') ||
+      ctx.includes('monthly budget') || ctx.includes('annual budget')) return 'budget';
 
   // Address
-  if (ctx.match(/\baddress\b/) || ctx.match(/\bcity\b/) ||
-      ctx.match(/\bstate\b/) || ctx.match(/\bzip\b/) ||
-      ctx.match(/\bpostal\b/) || ctx.match(/\blocation\b/)) return 'address';
+  if (ctx.match(/\baddress\b/)  || ctx.match(/\bcity\b/) ||
+      ctx.match(/\bstate\b/)    || ctx.match(/\bzip\b/) ||
+      ctx.match(/\bpostal\b/)   || ctx.match(/\bprovince\b/) ||
+      ctx.match(/\bregion\b/)   || ctx.match(/\btown\b/)) return 'address';
 
-  // Message (broad — last resort)
-  if (ctx.match(/\bmessage\b/) || ctx.match(/\bcomment\b/) ||
-      ctx.match(/\bdescription\b/) || ctx.match(/\bdetails\b/) ||
-      ctx.match(/\bnotes\b/) || ctx.match(/\brequirements\b/) ||
-      ctx.match(/\binquiry\b/) || ctx.match(/\benquiry\b/) ||
-      ctx.includes('tell us') || ctx.includes('write to') ||
-      ctx.includes('about your project')) return 'message';
+  // Message — broad, last resort
+  if (ctx.match(/\bmessage\b/)      || ctx.match(/\bcomment\b/) ||
+      ctx.match(/\bdescription\b/)  || ctx.match(/\bdetails\b/) ||
+      ctx.match(/\bnotes\b/)        || ctx.match(/\brequirements\b/) ||
+      ctx.match(/\binquiry\b/)      || ctx.match(/\benquiry\b/) ||
+      ctx.match(/\bconcern\b/)      || ctx.match(/\brequest\b/) ||
+      ctx.includes('tell us')       || ctx.includes('write to') ||
+      ctx.includes('about your project') || ctx.includes('project brief') ||
+      ctx.includes('anything else') || ctx.includes('more details') ||
+      ctx.includes('leave a message') || ctx.includes('drop us')) return 'message';
 
   // Keyword scan fallback
   for (const [fieldKey, keywords] of FIELD_DEFS) {
@@ -191,7 +216,6 @@ function matchField(ctx, tag, type) {
 
   return null;
 }
-
 // ── Phone value formatter ─────────────────────────────────────────────────────
 function getPhoneValue(contact, ctx, mask, pattern, maxlength) {
   mask      = (mask      || '').toLowerCase();
