@@ -2,9 +2,10 @@
   "completed": [
     "New York-Digital marketing agency",
     "New York-SEO agency",
-    "New York-Social media marketing agency"
+    "New York-Social media marketing agency",
+    "New York-PPC agency"
   ],
-  "currentIndex": 2,
+  "currentIndex": 3,
   "processedMapsUrls": [
     "https://www.google.com/maps/place/Hunter+Digital+Marketing+Agency+-+Social+Media+%26+Search+Marketing+Agency+in+New+York/data=!4m7!3m6!1s0x89c288c707ca5129:0xb4c46c0ddce1cc86!8m2!3d40.7450692!4d-73.9934267!16s%2Fg%2F1td4l13m!19sChIJKVHKB8eIwokRhszh3A1sxLQ?authuser=0&hl=en&rclk=1",
     "https://www.google.com/maps/place/Organic+Digital+Marketing/data=!4m7!3m6!1s0x89c25988509b84b7:0xd56e5c5df962c777!8m2!3d40.7759725!4d-73.9478532!16s%2Fg%2F11h39lwhx0!19sChIJt4SbUIhZwokRd8di-V1cbtU?authuser=0&hl=en&rclk=1",
@@ -333,6 +334,7 @@
     "https://www.google.com/maps/place/BARKER/data=!4m7!3m6!1s0x89c2598bd47ced0f:0xb67d990de63fa473!8m2!3d40.711925!4d-74.0085686!16s%2Fg%2F1263250vr!19sChIJD-181ItZwokRc6Q_5g2ZfbY?authuser=0&hl=en&rclk=1",
     "https://www.google.com/maps/place/PPC/data=!4m7!3m6!1s0x89c27b13423f4b13:0xc89f97697f6037a7!8m2!3d40.6429834!4d-73.6231691!16s%2Fg%2F11v5jkkzvv!19sChIJE0s_QhN7wokRpzdgf2mXn8g?authuser=0&hl=en&rclk=1",
     "https://www.google.com/maps/place/marHIVE+-+Marketing+Agency/data=!4m7!3m6!1s0x89c25bf91f2f7a1d:0x2ec5c64901b17cfe!8m2!3d40.7106472!4d-74.0081795!16s%2Fg%2F11lgqm9jys!19sChIJHXovH_lbwokR_nyxAUnGxS4?authuser=0&hl=en&rclk=1",
-    "https://www.google.com/maps/place/Ben+Dankiw+PPC+Consultant/data=!4m7!3m6!1s0x89c25a171364ab81:0x2034f577ee0a9342!8m2!3d40.6971415!4d-73.979506!16s%2Fg%2F11f0krln6s!19sChIJgatkExdawokRQpMK7nf1NCA?authuser=0&hl=en&rclk=1"
+    "https://www.google.com/maps/place/Ben+Dankiw+PPC+Consultant/data=!4m7!3m6!1s0x89c25a171364ab81:0x2034f577ee0a9342!8m2!3d40.6971415!4d-73.979506!16s%2Fg%2F11f0krln6s!19sChIJgatkExdawokRQpMK7nf1NCA?authuser=0&hl=en&rclk=1",
+    "https://www.google.com/maps/place/Nx3+Healthcare+Marketing+Company/data=!4m7!3m6!1s0x89c25b29f3156895:0xa13943609754e21e!8m2!3d40.7106472!4d-74.0081795!16s%2Fg%2F11y5vhhq1p!19sChIJlWgV8ylbwokRHuJUl2BDOaE?authuser=0&hl=en&rclk=1"
   ]
 }
