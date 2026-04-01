@@ -12,9 +12,10 @@
     "New York-Performance marketing agency",
     "Los Angeles-Digital marketing agency",
     "Los Angeles-SEO agency",
-    "Los Angeles-Social media marketing agency"
+    "Los Angeles-Social media marketing agency",
+    "Los Angeles-PPC agency"
   ],
-  "currentIndex": 12,
+  "currentIndex": 13,
   "processedMapsUrls": [
     "https://www.google.com/maps/place/Hunter+Digital+Marketing+Agency+-+Social+Media+%26+Search+Marketing+Agency+in+New+York/data=!4m7!3m6!1s0x89c288c707ca5129:0xb4c46c0ddce1cc86!8m2!3d40.7450692!4d-73.9934267!16s%2Fg%2F1td4l13m!19sChIJKVHKB8eIwokRhszh3A1sxLQ?authuser=0&hl=en&rclk=1",
     "https://www.google.com/maps/place/Organic+Digital+Marketing/data=!4m7!3m6!1s0x89c25988509b84b7:0xd56e5c5df962c777!8m2!3d40.7759725!4d-73.9478532!16s%2Fg%2F11h39lwhx0!19sChIJt4SbUIhZwokRd8di-V1cbtU?authuser=0&hl=en&rclk=1",
@@ -1098,6 +1099,7 @@
     "https://www.google.com/maps/place/Trivium+Group/data=!4m7!3m6!1s0x80c2b9272114bfa3:0xeb8a2c58d44a9c23!8m2!3d46.423669!4d-129.9427086!16s%2Fg%2F11vpcqy1j7!19sChIJo78UISe5woARI5xK1Fgsius?authuser=0&hl=en&rclk=1",
     "https://www.google.com/maps/place/24%2F7+SEO+%26+PPC+Experts/data=!4m7!3m6!1s0x80c2cf4f87b43715:0x39d88177ecce21c0!8m2!3d34.0077799!4d-118.1479127!16s%2Fg%2F11ldtyl3nl!19sChIJFTe0h0_PwoARwCHO7HeB2Dk?authuser=0&hl=en&rclk=1",
     "https://www.google.com/maps/place/Ben+Dankiw+PPC+Consultant/data=!4m7!3m6!1s0x80c2c64cbb9c1d37:0x986eb9afd22cc878!8m2!3d33.786671!4d-118.182354!16s%2Fg%2F11c60_q03w!19sChIJNx2cu0zGwoAReMgs0q-5bpg?authuser=0&hl=en&rclk=1",
-    "https://www.google.com/maps/place/EWM+NOW/data=!4m7!3m6!1s0x80c2c7e0715254cd:0x86484126932dc92b!8m2!3d34.0424929!4d-118.2556656!16s%2Fg%2F11gjhjpnyn!19sChIJzVRSceDHwoARK8ktkyZBSIY?authuser=0&hl=en&rclk=1"
+    "https://www.google.com/maps/place/EWM+NOW/data=!4m7!3m6!1s0x80c2c7e0715254cd:0x86484126932dc92b!8m2!3d34.0424929!4d-118.2556656!16s%2Fg%2F11gjhjpnyn!19sChIJzVRSceDHwoARK8ktkyZBSIY?authuser=0&hl=en&rclk=1",
+    "https://www.google.com/maps/place/PPC+Specialists/data=!4m7!3m6!1s0x80c2bf40439000f3:0x8e36b56ec6648185!8m2!3d34.1083567!4d-118.321037!16s%2Fg%2F11rxhz_x16!19sChIJ8wCQQ0C_woARhYFkxm61No4?authuser=0&hl=en&rclk=1"
   ]
 }
