@@ -1,6 +1,11 @@
-'use strict';
+const fs   = require('fs');
+const path = require('path');
+const UNKNOWN_LOG = path.join(__dirname, 'form_results', 'unknown_fields.log');
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function logUnknown(url, label, name, id, placeholder, type) {
+  const line = `${new Date().toISOString()} | ${url} | label="${label}" name="${name}" id="${id}" ph="${placeholder}" type=${type}\n`;
+  try { fs.appendFileSync(UNKNOWN_LOG, line); } catch(_) {}
+}
 
 // ── Set value — works with React, Vue, Angular, plain HTML ────────────────────
 const SET_VALUE_JS = `
