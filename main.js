@@ -137,7 +137,19 @@ async function processUrl(driver, url, record, contact) {
   const [submitted, lastError] = await submitForm(driver, form, record);
 
   // Wait for page to respond after submit (thank you, redirect, etc.)
-  await sleep(rand(3000, 5000));
+  await sleep(rand(2000, 3000));
+
+  // Step 8: Handle post-submit CAPTCHA (some sites show captcha after submit)
+  const postCaptcha = await handleCaptcha(driver, record, 'post-submit', form, CAPTCHA_WAIT_TIMEOUT);
+  if (postCaptcha === 'clear' && record.captcha_status && !record.captcha_status.includes('Not present')) {
+    // Captcha was present and solved — submit again
+    console.log('   🔄 Post-submit captcha solved — resubmitting...');
+    await sleep(rand(1000, 2000));
+    await submitForm(driver, form, record);
+    await sleep(rand(2000, 3000));
+  }
+
+  await sleep(rand(1000, 2000));
 
   if (submitted) {
     console.log('   • Checking submission result...');
