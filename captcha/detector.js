@@ -104,6 +104,22 @@ async function detectCaptchaState(driver, formContext) {
       return { present: true, reason: 'Captcha challenge text' };
   } catch (_) {}
 
+  // CF7 Quiz (math captcha)
+  try {
+    const cf7quiz = await driver.executeScript(function() {
+      var inp = document.querySelector('input.wpcf7-quiz,[name*="quiz-"]');
+      if (!inp || inp.offsetParent === null) return null;
+      var lbl = inp.closest('label');
+      var question = lbl ? lbl.innerText.trim() : '';
+      if (!question) {
+        var qlbl = document.querySelector('.wpcf7-quiz-label');
+        question = qlbl ? qlbl.innerText.trim() : '';
+      }
+      return { question: question, hasInput: true };
+    });
+    if (cf7quiz && cf7quiz.hasInput) return { present: true, reason: 'Image CAPTCHA' };
+  } catch (_) {}
+
   // Math CAPTCHA — scan ALL visible inputs for math question labels
   try {
     const mathFound = await driver.executeScript(function() {

@@ -142,10 +142,15 @@ async function processUrl(driver, url, record, contact) {
   if (submitted) {
     console.log('   • Checking submission result...');
     if (await detectSuccess(driver)) {
-      record.status = 'Success';
-      record.details = 'Verified thank-you / redirect';
+      const emailFilled = filled.includes('email');
+      const nameFilled  = filled.includes('full_name') || filled.includes('first_name');
+      const isComplete  = emailFilled && nameFilled;
+      record.status  = isComplete ? 'Success' : 'Partial';
+      record.details = isComplete
+        ? 'Verified thank-you / redirect'
+        : `Submitted but missing: ${!emailFilled?'email ':''} ${!nameFilled?'name':''}`.trim();
       record.success_status = 'Success detected';
-      console.log('   ✅ Form submitted successfully!');
+      console.log(isComplete ? '   ✅ Form submitted successfully!' : `   ⚠️ Partial: ${record.details}`);
     } else {
       record.details = 'Submitted but no confirmation detected';
       record.success_status = 'No confirmation';

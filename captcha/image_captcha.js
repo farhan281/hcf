@@ -334,6 +334,50 @@ function solveMathExpr(text) {
 }
 
 async function solveMathCaptcha(driver) {
+  // CF7 Quiz — fetch question via CF7 REST API
+  try {
+    const cf7 = await driver.executeAsyncScript(function() {
+      var done = arguments[arguments.length - 1];
+      // First check if label already has text
+      var inputs = Array.from(document.querySelectorAll('input.wpcf7-quiz,[name*="quiz-"]'));
+      for (var i = 0; i < inputs.length; i++) {
+        var inp = inputs[i];
+        if (inp.offsetParent === null) continue;
+        var lbl = inp.closest('label');
+        var question = '';
+        if (lbl) {
+          var span = lbl.querySelector('.wpcf7-quiz-label');
+          question = span ? span.innerText.trim() : lbl.innerText.trim();
+        }
+        if (question) { done({ inp: inp, question: question }); return; }
+      }
+      // Fetch via CF7 REST API
+      var formEl = document.querySelector('.wpcf7');
+      var formId = formEl ? (formEl.getAttribute('data-id') || '') : '';
+      if (!formId) { done(null); return; }
+      var root = (window.wpcf7 && window.wpcf7.api && window.wpcf7.api.root) || '/wp-json/';
+      fetch(root + 'contact-form-7/v1/contact-forms/' + formId + '?context=edit', { credentials: 'include' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var content = (data && data.properties && data.properties.form && data.properties.form.body) || '';
+          var match = content.match(/quiz[^"]*"([^"]+)"/);
+          var question = match ? match[1] : '';
+          var inp2 = document.querySelector('input.wpcf7-quiz,[name*="quiz-"]');
+          done(question && inp2 ? { inp: inp2, question: question } : null);
+        })
+        .catch(function() { done(null); });
+    });
+    if (cf7 && cf7.question) {
+      console.log(`      🔢 CF7 Quiz: "${cf7.question.slice(0,60)}"`);
+      const answer = solveMathExpr(cf7.question);
+      if (answer !== null) {
+        console.log(`      ✅ CF7 Quiz answer: ${answer}`);
+        await typeAnswer(driver, cf7.inp, answer);
+        return true;
+      }
+    }
+  } catch (_) {}
+
   const found = await driver.executeScript(function() {
     function hasMath(text) {
       var t = (text||'').toLowerCase();

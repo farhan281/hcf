@@ -4,6 +4,11 @@ const fs   = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 
+// Start autopush in background
+const autopush = spawn('node', ['autopush.js'], { cwd: __dirname, stdio: 'ignore', detached: true });
+autopush.unref();
+console.log('🔄 Autopush started\n');
+
 const CSV_PATH  = path.join(__dirname, 'digital_marketing_data.csv');
 const URLS_FILE = path.join(__dirname, 'retry_urls.txt');
 const CHECK_INTERVAL = 30000; // check every 30 seconds
