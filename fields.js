@@ -137,17 +137,19 @@ function matchField(ctx, tag, type) {
       ctx.match(/\bwhatsapp\b/) || ctx.match(/\bmob\b/)) return 'phone';
 
   // First/Last name (before full name)
-  if (ctx.match(/\bfirst\b/) && ctx.match(/name/)) return 'first_name';
-  if (ctx.match(/\blast\b/)  && ctx.match(/name/)) return 'last_name';
+  if (ctx.match(/\bfirst\b/) && (ctx.match(/name/) || !ctx.match(/last|email|phone|company|message/))) return 'first_name';
+  if (ctx.match(/\blast\b/)  && (ctx.match(/name/) || !ctx.match(/first|email|phone|company|message/))) return 'last_name';
   if (ctx.includes('fname') || ctx.includes('firstname') || ctx.includes('first_name') ||
-      ctx.includes('given name') || ctx.includes('forename')) return 'first_name';
+      ctx.includes('given name') || ctx.includes('forename') || ctx.includes('given-name')) return 'first_name';
   if (ctx.includes('lname') || ctx.includes('lastname') || ctx.includes('last_name') ||
-      ctx.includes('surname') || ctx.includes('family name')) return 'last_name';
+      ctx.includes('surname') || ctx.includes('family name') || ctx.includes('family-name')) return 'last_name';
 
   // Full name
   if (ctx.includes('full name') || ctx.includes('fullname') ||
       ctx.includes('your name') || ctx.includes('contact name') ||
       ctx.match(/^name\b/) || ctx.match(/\bname\s*\*?\s*$/)) return 'full_name';
+  // Generic 'name' alone
+  if (ctx.match(/\bname\b/) && !ctx.match(/company|brand|agency|business|domain|file|user|login/)) return 'full_name';
 
   // Website
   if (ctx.match(/\bwebsite\b/) || ctx.match(/\burl\b/) ||
