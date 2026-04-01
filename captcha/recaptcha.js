@@ -193,15 +193,19 @@ async function solveRecaptchaAudio(driver) {
   try {
     await sw(driver);
 
-    // 1. Find anchor iframe
+    // 1. Find anchor iframe — wait up to 8s for it to appear (post-submit captcha loads late)
     let anchor = null;
-    for (const f of await driver.findElements(By.css("iframe[src*='recaptcha'][src*='anchor']"))) {
-      if (await f.isDisplayed() && (await f.getRect()).width >= 60) { anchor = f; break; }
-    }
-    if (!anchor) {
-      for (const f of await driver.findElements(By.css("iframe[src*='recaptcha']"))) {
-        if (await f.isDisplayed()) { anchor = f; break; }
+    const anchorDeadline = Date.now() + 8000;
+    while (Date.now() < anchorDeadline && !anchor) {
+      for (const f of await driver.findElements(By.css("iframe[src*='recaptcha'][src*='anchor']"))) {
+        try { if (await f.isDisplayed() && (await f.getRect()).width >= 60) { anchor = f; break; } } catch(_) {}
       }
+      if (!anchor) {
+        for (const f of await driver.findElements(By.css("iframe[src*='recaptcha']"))) {
+          try { if (await f.isDisplayed()) { anchor = f; break; } } catch(_) {}
+        }
+      }
+      if (!anchor) await sleep(500);
     }
     if (!anchor) { console.log('      ⚠️ No reCAPTCHA anchor iframe'); return false; }
 
