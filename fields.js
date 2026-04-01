@@ -447,7 +447,15 @@ async function fillAllFields(driver, form, contact, usedFields, filled, failed) 
 
     // ── Text inputs ───────────────────────────────────────────────────────────
     const fieldKey = matchField(f.ctx, f.tag, f.type);
-    if (!fieldKey || usedFields.has(fieldKey)) continue;
+    if (!fieldKey) {
+      // Log unknown field for future improvement
+      try {
+        const url = await driver.getCurrentUrl().catch(() => '');
+        logUnknown(url, f.label, f.name, f.id, f.placeholder, f.type);
+      } catch(_) {}
+      continue;
+    }
+    if (usedFields.has(fieldKey)) continue;
 
     const values = {
       first_name: contact.first_name,
