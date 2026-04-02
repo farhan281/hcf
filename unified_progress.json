@@ -20,9 +20,10 @@
     "Los Angeles-Online marketing agency",
     "Los Angeles-Growth marketing agency",
     "Los Angeles-Performance marketing agency",
-    "Chicago-Digital marketing agency"
+    "Chicago-Digital marketing agency",
+    "Chicago-SEO agency"
   ],
-  "currentIndex": 20,
+  "currentIndex": 21,
   "processedMapsUrls": [
     "https://www.google.com/maps/place/Hunter+Digital+Marketing+Agency+-+Social+Media+%26+Search+Marketing+Agency+in+New+York/data=!4m7!3m6!1s0x89c288c707ca5129:0xb4c46c0ddce1cc86!8m2!3d40.7450692!4d-73.9934267!16s%2Fg%2F1td4l13m!19sChIJKVHKB8eIwokRhszh3A1sxLQ?authuser=0&hl=en&rclk=1",
     "https://www.google.com/maps/place/Organic+Digital+Marketing/data=!4m7!3m6!1s0x89c25988509b84b7:0xd56e5c5df962c777!8m2!3d40.7759725!4d-73.9478532!16s%2Fg%2F11h39lwhx0!19sChIJt4SbUIhZwokRd8di-V1cbtU?authuser=0&hl=en&rclk=1",
@@ -1553,6 +1554,7 @@
     "https://www.google.com/maps/place/SEO+Fuel+Marketing/data=!4m7!3m6!1s0x880e2dceed5ffd11:0xc7cf5c9edd4f6148!8m2!3d41.8865045!4d-87.6344564!16s%2Fg%2F11mqn1pgcm!19sChIJEf1f7c4tDogRSGFP3Z5cz8c?authuser=0&hl=en&rclk=1",
     "https://www.google.com/maps/place/Skyline+Media+Growth+Partners/data=!4m7!3m6!1s0x880fd37726ea5f43:0xacee0d08ca628743!8m2!3d41.8988085!4d-87.6230821!16s%2Fg%2F11v3gk8ly_!19sChIJQ1_qJnfTD4gRQ4diyggN7qw?authuser=0&hl=en&rclk=1",
     "https://www.google.com/maps/place/Digital+Edge+SEO/data=!4m7!3m6!1s0x880e2d7b55dfe6e1:0x64fc3b2ab829dfb5!8m2!3d41.8893506!4d-87.654076!16s%2Fg%2F11y5htnt8r!19sChIJ4ebfVXstDogRtd8puCo7_GQ?authuser=0&hl=en&rclk=1",
-    "https://www.google.com/maps/place/Rise+Marketing/data=!4m7!3m6!1s0x880e2d1787b085b5:0x5a22df81570f9192!8m2!3d41.879611!4d-87.633471!16s%2Fg%2F11h6cq98j2!19sChIJtYWwhxctDogRkpEPV4HfIlo?authuser=0&hl=en&rclk=1"
+    "https://www.google.com/maps/place/Rise+Marketing/data=!4m7!3m6!1s0x880e2d1787b085b5:0x5a22df81570f9192!8m2!3d41.879611!4d-87.633471!16s%2Fg%2F11h6cq98j2!19sChIJtYWwhxctDogRkpEPV4HfIlo?authuser=0&hl=en&rclk=1",
+    "https://www.google.com/maps/place/Athlete+Web+Design/data=!4m7!3m6!1s0x880e2cb8f6ddcae1:0x5baabe85e23ed359!8m2!3d41.8828444!4d-87.6366167!16s%2Fg%2F12hqpbfx1!19sChIJ4crd9rgsDogRWdM-4oW-qls?authuser=0&hl=en&rclk=1"
   ]
 }
