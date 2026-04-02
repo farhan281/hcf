@@ -1,5 +1,4 @@
 node_modules/
-form_results/
 .driver-cache/
 *.png
 *.mp3
@@ -7,3 +6,5 @@ form_results/
 urls.txt
 progress.txt
 eng.traineddata
+form_results/*.png
+form_results/*.txt
