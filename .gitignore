@@ -3,8 +3,4 @@ node_modules/
 *.png
 *.mp3
 *.wav
-urls.txt
-progress.txt
 eng.traineddata
-form_results/*.png
-form_results/*.txt
