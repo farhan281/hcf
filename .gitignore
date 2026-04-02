@@ -3,4 +3,6 @@ node_modules/
 *.png
 *.mp3
 *.wav
+*.jpg
+*.jpeg
 eng.traineddata
