@@ -69,6 +69,8 @@ function freshProfileDir() {
   return _profileDir;
 }
 
+const HEKTCAPTCHA_EXT = path.join(__dirname, '..', 'hcaptcha_models', 'ext');
+
 async function makeDriver() {
   const binary     = findBrowserBinary();
   const driverPath = findChromedriverBinary();
@@ -82,12 +84,20 @@ async function makeDriver() {
   }
   opts.addArguments(
     '--disable-notifications',
-    '--start-maximized',
     '--disable-blink-features=AutomationControlled',
     '--no-sandbox',
     '--disable-dev-shm-usage',
+    '--window-size=960,1080',
+    '--window-position=0,0',
     `--user-data-dir=${profileDir}`,
   );
+
+  // Load hektCaptcha extension if available
+  if (fs.existsSync(HEKTCAPTCHA_EXT)) {
+    opts.addArguments(`--load-extension=${HEKTCAPTCHA_EXT}`);
+    console.log('   🧩 hektCaptcha extension loaded');
+  }
+
   if (headless) opts.addArguments('--headless=new', '--disable-gpu');
 
   // IP rotation — get proxy before building driver
@@ -108,6 +118,7 @@ async function makeDriver() {
   // Exclude automation switches to avoid detection
   opts.excludeSwitches(['enable-automation']);
   opts.addArguments('--disable-infobars');
+  opts.setUserPreferences({ 'credentials_enable_service': false });
 
   const svc = driverPath
     ? new chrome.ServiceBuilder(driverPath)
@@ -122,6 +133,20 @@ async function makeDriver() {
     .build();
 
   await driver.manage().setTimeouts({ pageLoad: PAGE_LOAD_TIMEOUT });
+
+  // Spoof navigator.webdriver via CDP
+  try {
+    const connection = await driver.createCDPConnection('page');
+    await connection.execute('Page.addScriptToEvaluateOnNewDocument', {
+      source: [
+        "Object.defineProperty(navigator,'webdriver',{get:()=>undefined});",
+        "Object.defineProperty(navigator,'plugins',{get:()=>[1,2,3,4,5]});",
+        "Object.defineProperty(navigator,'languages',{get:()=>['en-US','en']});",
+        "window.chrome=window.chrome||{runtime:{}};",
+      ].join('')
+    });
+  } catch (_) {}
+
   return driver;
 }
 

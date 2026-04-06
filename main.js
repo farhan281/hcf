@@ -58,9 +58,32 @@ async function clearOverlays(driver) {
 
 // ── Process one URL ───────────────────────────────────────────────────────────
 async function processUrl(driver, url, record, contact) {
-  // Load page
   const t0 = Date.now();
-  await driver.get(url);
+  try { await driver.get(url); }
+  catch (e) {
+    const msg = e.message || '';
+    if (msg.includes('Timed out receiving message from renderer') ||
+        (msg.includes('timeout') && msg.includes('renderer'))) {
+      console.log('   ⚠️ Renderer timeout — stopping and continuing...');
+      try { await driver.executeScript('window.stop();'); } catch (_) {}
+      await sleep(1000);
+      const hasContent = await driver.executeScript(
+        'return document.body && document.body.innerText.length > 100'
+      ).catch(() => false);
+      if (!hasContent) {
+        record.status = 'Skipped'; record.details = 'Renderer timeout — no content';
+        record.load_status = 'Timeout'; return;
+      }
+    } else if (msg.includes('timeout') || msg.toLowerCase().includes('page load')) {
+      record.status = 'Skipped'; record.details = 'Page load timeout';
+      record.load_status = 'Timeout';
+      try { await driver.executeScript('window.stop();'); } catch (_) {}
+      return;
+    } else {
+      record.status = 'Skipped'; record.details = `Load error: ${msg.slice(0,120)}`;
+      record.load_status = 'Error'; return;
+    }
+  }
   const loadTime = (Date.now() - t0) / 1000;
   record.load_status = 'Loaded';
   record.load_time_s = loadTime.toFixed(1);
@@ -68,6 +91,26 @@ async function processUrl(driver, url, record, contact) {
   if (loadTime > 20) {
     record.status = 'Skipped'; record.details = `Slow: ${loadTime.toFixed(1)}s`;
     record.load_status = 'Slow'; return;
+  }
+
+  // ── HTTP error check — IMMEDIATELY, before any waiting ────────────────────────
+  const httpSkip = await driver.executeScript(`
+    (function(){
+      var title = document.title.toLowerCase();
+      var body  = (document.body ? document.body.innerText : '').toLowerCase().slice(0, 500);
+      var bad   = ['404','page not found','not found','error 404','410','gone',
+                   '403','forbidden','access denied','500','server error','503',
+                   'service unavailable','this page does not exist',
+                   'page cannot be found','no longer exists','has been removed'];
+      if (bad.some(function(t){ return title.includes(t); })) return 'title:' + title.slice(0,40);
+      if (bad.some(function(t){ return body.includes(t);  })) return 'body:'  + body.slice(0,40);
+      return null;
+    })()
+  `).catch(() => null);
+  if (httpSkip) {
+    console.log(`   ⏭️ HTTP error — skipping`);
+    record.status = 'Skipped'; record.details = `HTTP error: ${httpSkip.slice(0,80)}`;
+    record.load_status = 'HTTPError'; return;
   }
 
   // Wait for JS render
@@ -127,26 +170,44 @@ async function processUrl(driver, url, record, contact) {
   await checkCheckboxes(driver, form);
   await sleep(rand(1500, 2500));
 
-  // Step 6: Handle CAPTCHA
+  // Step 6: Handle pre-submit CAPTCHA
   const captchaResult = await handleCaptcha(driver, record, 'pre-submit', form, CAPTCHA_WAIT_TIMEOUT);
   if (captchaResult === 'blocked' || captchaResult === 'retry') return;
   if (!record.captcha_status) record.captcha_status = 'Not present';
+  const preCapSolved = captchaResult === 'clear' && (record.captcha_status || '').includes('pre-submit');
 
   // Step 7: Submit
   await sleep(rand(1000, 2000));
   const [submitted, lastError] = await submitForm(driver, form, record);
 
-  // Wait for page to respond after submit (thank you, redirect, etc.)
+  // Wait for page to respond
   await sleep(rand(2000, 3000));
 
-  // Step 8: Handle post-submit CAPTCHA (some sites show captcha after submit)
-  const postCaptcha = await handleCaptcha(driver, record, 'post-submit', form, CAPTCHA_WAIT_TIMEOUT);
-  if (postCaptcha === 'clear' && record.captcha_status && record.captcha_status.includes('post-submit')) {
-    // Captcha was present and solved — submit again
-    console.log('   🔄 Post-submit captcha solved — resubmitting...');
-    await sleep(rand(1000, 2000));
-    await submitForm(driver, form, record);
-    await sleep(rand(2000, 3000));
+  // Step 8: Post-submit CAPTCHA — skip if pre-submit captcha was already solved
+  // (darling.nyc pattern: pre-submit captcha solved → submit → no new captcha needed)
+  if (!preCapSolved) {
+    const postCaptcha = await handleCaptcha(driver, record, 'post-submit', form, CAPTCHA_WAIT_TIMEOUT);
+    if (postCaptcha === 'retry') {
+      record.captcha_status = record.captcha_status || 'Not solved at post-submit';
+      return;
+    }
+    if (postCaptcha === 'blocked') return;
+    // Page already showed success — mark directly, skip detectSuccess
+    if (postCaptcha === 'clear' && (record.captcha_status || '').includes('already')) {
+      const emailFilled = filled.includes('email');
+      const nameFilled  = filled.includes('full_name') || filled.includes('first_name');
+      record.status  = (emailFilled && nameFilled) ? 'Success' : 'Partial';
+      record.details = 'Page showed success after submit';
+      record.success_status = 'Success detected';
+      console.log(record.status === 'Success' ? '   ✅ Form submitted successfully!' : `   ⚠️ Partial: ${record.details}`);
+      return;
+    }
+    if (postCaptcha === 'clear' && (record.captcha_status || '').includes('post-submit')) {
+      console.log('   🔄 Post-submit captcha solved — resubmitting...');
+      await sleep(rand(1000, 2000));
+      await submitForm(driver, form, record);
+      await sleep(rand(2000, 3000));
+    }
   }
 
   await sleep(rand(1000, 2000));

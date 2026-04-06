@@ -330,6 +330,11 @@ async function detectSuccess(driver) {
         // Body text — strong phrases only
         if (texts.some(function(t){ return body.indexOf(t)!==-1; })) return true;
 
+        // reCAPTCHA V3 error — definitive failure signal
+        if (body.indexOf('recaptcha v3') !== -1 || body.indexOf('recaptcha validation failed') !== -1 ||
+            body.indexOf('suspected as abusive') !== -1 || body.indexOf('v3 validation failed') !== -1)
+          return false;
+
         // Weak selectors — only if text also matches
         for (var k=0; k<weakSels.length; k++) {
           try {

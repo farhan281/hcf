@@ -91,6 +91,9 @@ const FIELD_DEFS = [
     'project type','what are you looking for','nature of inquiry',
     'i am interested in','looking for','need help with',
     'what brings you here','department',
+    'how did you hear','how did you find','how did you know',
+    'where did you hear','referred by','referral','hear about us',
+    'find us','found us','discover',
   ]],
   ['message', [
     'message','your message','write your message','enter message',
@@ -190,7 +193,11 @@ function matchField(ctx, tag, type) {
       ctx.includes('how can we help') || ctx.includes('what can we') ||
       ctx.includes('looking for') || ctx.includes('need help with') ||
       ctx.includes('i am interested') || ctx.includes('department') ||
-      ctx.includes('what brings you')) return 'subject';
+      ctx.includes('what brings you') ||
+      ctx.includes('how did you hear') || ctx.includes('how did you find') ||
+      ctx.includes('hear about') || ctx.includes('found us') ||
+      ctx.includes('referred by') || ctx.includes('referral') ||
+      ctx.includes('where did you') || ctx.includes('discover')) return 'subject';
 
   // Budget
   if (ctx.match(/\bbudget\b/)   || ctx.includes('price range') ||
@@ -380,7 +387,20 @@ async function fillAllFields(driver, form, contact, usedFields, filled, failed) 
   console.log('      └──────────────────────┴──────────────────┴────────┴──────────────────');
 
   for (const f of pairs) {
-    if (!f.el || f.isHoneypot || f.isCaptcha) continue;
+    if (!f.el || f.isHoneypot) continue;
+
+    // CF7 Quiz / Math CAPTCHA — solve inline instead of skipping
+    if (f.isCaptcha) {
+      const ctx = f.ctx || '';
+      if (ctx.includes('quiz') || ctx.includes('math') || ctx.includes('captcha')) {
+        try {
+          const { solveMathCaptcha } = require('./captcha/image_captcha');
+          const solved = await solveMathCaptcha(driver);
+          if (solved) { filled.push('captcha:math'); console.log('      ✓ Math CAPTCHA solved'); }
+        } catch (_) {}
+      }
+      continue;
+    }
     if (f.type === 'checkbox' || f.type === 'radio') continue;
 
     // ── Selects ──────────────────────────────────────────────────────────────

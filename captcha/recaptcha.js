@@ -64,6 +64,36 @@ setTimeout(() => { try { getWhisper(); } catch (_) {} }, 200);
 // ── Helpers ───────────────────────────────────────────────────────────────────
 async function sw(driver) { try { await driver.switchTo().defaultContent(); } catch (_) {} }
 
+// Check if page already shows a thank-you / success message
+async function _pageSuccess(driver) {
+  try {
+    await sw(driver);
+    return await driver.executeScript(function() {
+      var body  = (document.body ? document.body.innerText : '').toLowerCase();
+      var url   = window.location.href.toLowerCase();
+      var TEXTS = ['thank you','thanks for','message sent','message received',
+        'successfully submitted','form submitted','we will get back',
+        'we have received','received your','inquiry received','enquiry received',
+        'request received','submission received','we received your'];
+      var SELS  = ['.wpcf7-mail-sent-ok','.elementor-message-success',
+        '.gform_confirmation_message','.wpforms-confirmation',
+        '.alert-success','.success-message','.form-success',
+        '[class*="confirmation"]','[class*="thank-you"]','[class*="thankyou"]'];
+      if (TEXTS.some(function(t){ return body.indexOf(t) !== -1; })) return true;
+      for (var i=0; i<SELS.length; i++) {
+        var els = document.querySelectorAll(SELS[i]);
+        for (var j=0; j<els.length; j++) {
+          if (els[j].offsetParent !== null && (els[j].innerText||'').trim().length > 2)
+            return true;
+        }
+      }
+      if (['thank','success','confirm','sent','received','submitted']
+          .some(function(w){ return url.indexOf(w) !== -1; })) return true;
+      return false;
+    });
+  } catch (_) { return false; }
+}
+
 async function isSolved(driver) {
   try {
     await sw(driver);
@@ -193,45 +223,125 @@ async function solveRecaptchaAudio(driver) {
   try {
     await sw(driver);
 
-    // 1. Find anchor iframe — wait up to 8s for it to appear (post-submit captcha loads late)
+    // 1. Wait longer for post-submit reCAPTCHA to fully render (up to 12s)
+    await sleep(rand(1500, 2500));
     let anchor = null;
-    const anchorDeadline = Date.now() + 8000;
+    const anchorDeadline = Date.now() + 12000;
     while (Date.now() < anchorDeadline && !anchor) {
-      for (const f of await driver.findElements(By.css("iframe[src*='recaptcha'][src*='anchor']"))) {
-        try { if (await f.isDisplayed() && (await f.getRect()).width >= 60) { anchor = f; break; } } catch(_) {}
+      const candidates = [
+        "iframe[src*='recaptcha'][src*='anchor']",
+        "iframe[src*='google.com/recaptcha'][src*='anchor']",
+        "iframe[title='reCAPTCHA']",
+        "iframe[src*='recaptcha']",
+      ];
+      for (const sel of candidates) {
+        try {
+          for (const f of await driver.findElements(By.css(sel))) {
+            try {
+              const rect = await f.getRect();
+              if (rect.width >= 50 && rect.height >= 30 && await f.isDisplayed()) {
+                anchor = f; break;
+              }
+            } catch(_) {}
+          }
+        } catch(_) {}
+        if (anchor) break;
       }
-      if (!anchor) {
-        for (const f of await driver.findElements(By.css("iframe[src*='recaptcha']"))) {
-          try { if (await f.isDisplayed()) { anchor = f; break; } } catch(_) {}
-        }
-      }
-      if (!anchor) await sleep(500);
+      if (!anchor) await sleep(600);
     }
     if (!anchor) { console.log('      ⚠️ No reCAPTCHA anchor iframe'); return false; }
+    console.log('      ✅ Found anchor iframe');
 
-    // 2. Click checkbox
-    try {
-      await driver.switchTo().frame(anchor);
-      const cb = await driver.findElement(By.css('#recaptcha-anchor,.recaptcha-checkbox-border,.recaptcha-checkbox'));
-      await clickEl(driver, cb);
-      console.log('      ✓ Clicked checkbox');
-    } catch (e) {
-      console.log(`      ⚠️ Checkbox failed: ${(e.message||'').slice(0,60)}`);
-      await sw(driver); return false;
+    // 2. Click checkbox — try multiple selectors with retry
+    let checkboxClicked = false;
+    for (let cbTry = 1; cbTry <= 3 && !checkboxClicked; cbTry++) {
+      try {
+        await driver.switchTo().frame(anchor);
+        await sleep(rand(400, 800));
+        // Try all known checkbox selectors
+        const cbSelectors = [
+          '#recaptcha-anchor',
+          '.recaptcha-checkbox-border',
+          '.recaptcha-checkbox',
+          '[role="checkbox"]',
+          '.rc-anchor-checkbox',
+          'div.recaptcha-checkbox',
+          '#recaptcha-anchor-label',
+          'span.recaptcha-checkbox',
+        ];
+        for (const sel of cbSelectors) {
+          try {
+            const els = await driver.findElements(By.css(sel));
+            for (const cb of els) {
+              try {
+                if (await cb.isDisplayed()) {
+                  await clickEl(driver, cb);
+                  console.log(`      ✓ Clicked checkbox (${sel})`);
+                  checkboxClicked = true;
+                  break;
+                }
+              } catch(_) {}
+            }
+            if (checkboxClicked) break;
+          } catch(_) {}
+        }
+        // Last resort: click center of iframe body
+        if (!checkboxClicked) {
+          await driver.executeScript(`
+            var el = document.querySelector('#recaptcha-anchor') ||
+                     document.querySelector('[role="checkbox"]') ||
+                     document.body;
+            if (el) {
+              var r = el.getBoundingClientRect();
+              el.dispatchEvent(new MouseEvent('click',{
+                bubbles:true, cancelable:true,
+                clientX: r.left + r.width/2,
+                clientY: r.top  + r.height/2
+              }));
+            }
+          `);
+          console.log('      ✓ Clicked checkbox (JS body fallback)');
+          checkboxClicked = true;
+        }
+      } catch (e) {
+        console.log(`      ⚠️ Checkbox try ${cbTry}: ${(e.message||'').slice(0,60)}`);
+      } finally {
+        await sw(driver);
+      }
+      if (!checkboxClicked) await sleep(1000);
     }
-    await sw(driver);
-    await sleep(rand(1500, 2500));
+
+    if (!checkboxClicked) {
+      console.log('      ⚠️ Could not click checkbox after 3 tries');
+      return false;
+    }
+
+    await sleep(rand(2000, 3000));
 
     // 3. Already solved?
     if (await isSolved(driver)) { console.log('      ✅ Solved at checkbox!'); return true; }
 
-    // 4. Find bframe
+    // 4. Find bframe — wait up to 8s for challenge to appear
     let bframe = null;
-    for (const f of await driver.findElements(By.css("iframe[src*='recaptcha'][src*='bframe']"))) { bframe = f; break; }
-    if (!bframe) {
-      for (const f of await driver.findElements(By.css("iframe[title*='recaptcha challenge'],iframe[title*='challenge']"))) { bframe = f; break; }
+    const bframeDeadline = Date.now() + 8000;
+    while (Date.now() < bframeDeadline && !bframe) {
+      for (const sel of [
+        "iframe[src*='recaptcha'][src*='bframe']",
+        "iframe[src*='google.com/recaptcha'][src*='bframe']",
+        "iframe[title*='recaptcha challenge' i]",
+        "iframe[title*='challenge' i]",
+      ]) {
+        try {
+          const frames = await driver.findElements(By.css(sel));
+          for (const f of frames) {
+            try { if (await f.isDisplayed()) { bframe = f; break; } } catch(_) {}
+          }
+        } catch(_) {}
+        if (bframe) break;
+      }
+      if (!bframe) await sleep(500);
     }
-    if (!bframe) { console.log('      ✅ Solved (no challenge)'); return true; }
+    if (!bframe) { console.log('      ✅ Solved (no challenge appeared)'); return true; }
 
     await driver.switchTo().frame(bframe);
     await sleep(1200);
@@ -280,10 +390,61 @@ async function solveRecaptchaAudio(driver) {
       for (let attempt = 1; attempt <= 3; attempt++) {
         console.log(`      📥 Attempt ${attempt}/3...`);
 
+        // Re-find bframe each attempt (new challenge = new iframe src)
+        await sw(driver);
+        bframe = null;
+        const bfDeadline = Date.now() + 8000;
+        while (Date.now() < bfDeadline && !bframe) {
+          for (const sel of [
+            "iframe[src*='recaptcha'][src*='bframe']",
+            "iframe[src*='google.com/recaptcha'][src*='bframe']",
+            "iframe[title*='recaptcha challenge' i]",
+            "iframe[title*='challenge' i]",
+          ]) {
+            try {
+              const frames = await driver.findElements(By.css(sel));
+              for (const f of frames) {
+                try { if (await f.isDisplayed()) { bframe = f; break; } } catch(_) {}
+              }
+            } catch(_) {}
+            if (bframe) break;
+          }
+          if (!bframe) await sleep(400);
+        }
+        if (!bframe) {
+          // Challenge may have disappeared — check if solved
+          if (await isSolved(driver)) { console.log('      ✅ Solved!'); return true; }
+          console.log(`      ⚠️ bframe gone (${attempt}/3)`);
+          break;
+        }
+
+        await driver.switchTo().frame(bframe);
+        await sleep(rand(600, 1000));
+
+        if (await isRateLimited(driver)) { console.log('      ⚠️ Rate-limited'); await sw(driver); return false; }
+
+        // On attempt > 1: check if we need to switch to audio again
+        if (attempt > 1) {
+          const needSwitch = await driver.executeScript(function() {
+            return !!document.querySelector('.rc-imageselect-tile,.rc-imageselect-table,[class*="imageselect"]');
+          }).catch(() => false);
+          if (needSwitch) {
+            console.log('      🖼️ New image challenge — switching to audio...');
+            const switched = await clickAudioButton(driver);
+            if (switched) await sleep(2000);
+          }
+        }
+
         const audioUrl = await getAudioUrl(driver);
         if (!audioUrl) {
           console.log(`      ⚠️ No audio URL (${attempt}/3)`);
-          if (attempt < 3 && await reload(driver)) { await sleep(800); continue; }
+          // Try reloading challenge
+          if (attempt < 3) {
+            await reload(driver);
+            await sw(driver);
+            await sleep(rand(1500, 2500));
+            continue;
+          }
           await sw(driver); return false;
         }
         console.log(`      🎵 ${audioUrl.slice(0,70)}...`);
@@ -291,7 +452,7 @@ async function solveRecaptchaAudio(driver) {
         const b64 = await fetchAudio(driver, audioUrl);
         if (!b64) {
           console.log(`      ⚠️ Fetch failed (${attempt}/3)`);
-          if (attempt < 3 && await reload(driver)) { await sleep(800); continue; }
+          if (attempt < 3) { await reload(driver); await sw(driver); await sleep(rand(1000,2000)); continue; }
           await sw(driver); return false;
         }
 
@@ -301,15 +462,30 @@ async function solveRecaptchaAudio(driver) {
 
         await sw(driver);
         const text = await transcribe(mp3Path);
-        await driver.switchTo().frame(bframe);
+
+        // Re-switch to bframe after transcription
+        await driver.switchTo().frame(bframe).catch(async () => {
+          // bframe reference stale — re-find
+          await sw(driver);
+          for (const sel of ["iframe[src*='recaptcha'][src*='bframe']","iframe[title*='challenge' i]"]) {
+            try {
+              const frames = await driver.findElements(By.css(sel));
+              for (const f of frames) {
+                try { if (await f.isDisplayed()) { bframe = f; break; } } catch(_) {}
+              }
+            } catch(_) {}
+            if (bframe) break;
+          }
+          if (bframe) await driver.switchTo().frame(bframe);
+        });
 
         if (!text) {
           console.log(`      ⚠️ Empty transcription (${attempt}/3)`);
-          if (attempt < 3 && await reload(driver)) { await sleep(800); continue; }
+          if (attempt < 3 && await reload(driver)) { await sw(driver); await sleep(rand(1000,2000)); continue; }
           await sw(driver); return false;
         }
 
-        // Type answer char-by-char
+        // Type answer
         try {
           const ans = await driver.findElement(By.css(
             '#audio-response,.rc-audiochallenge-response-field input,input[id*="audio-response"]'));
@@ -322,10 +498,10 @@ async function solveRecaptchaAudio(driver) {
               el.dispatchEvent(new InputEvent('input',       { bubbles:true }));
               el.dispatchEvent(new KeyboardEvent('keyup',    { key:ch, bubbles:true }));
             }, ans, ch);
-            await sleep(rand(40, 110));
+            await sleep(rand(60, 130));
           }
           console.log(`      ✏️  Typed: "${text}"`);
-          await sleep(rand(300, 500));
+          await sleep(rand(400, 700));
         } catch (e) {
           console.log(`      ⚠️ Answer input: ${(e.message||'').slice(0,60)}`);
           await sw(driver); return false;
@@ -342,10 +518,20 @@ async function solveRecaptchaAudio(driver) {
           await sw(driver); return false;
         }
 
-        await sleep(2000);
+        // Wait for result
+        await sleep(rand(2500, 3500));
         await sw(driver);
+
+        // Check page-level success FIRST — form may have already submitted
+        // before captcha appeared (nogood.io pattern)
+        if (await _pageSuccess(driver)) {
+          console.log('      ✅ Page shows success — captcha bypassed!');
+          return true;
+        }
+
         if (await isSolved(driver)) { console.log('      ✅ reCAPTCHA solved!'); return true; }
 
+        // Check error / rate limit in bframe
         try {
           await driver.switchTo().frame(bframe);
           if (await isRateLimited(driver)) { console.log('      ⚠️ Rate limited'); await sw(driver); return false; }
@@ -353,20 +539,13 @@ async function solveRecaptchaAudio(driver) {
           let hasErr = false;
           for (const e of errs) { if (await e.isDisplayed() && (await e.getText()).trim()) { hasErr = true; break; } }
           await sw(driver);
-          if (hasErr) {
-            console.log(`      ⚠️ Wrong answer (${attempt}/3)`);
-            if (attempt < 3) { await driver.switchTo().frame(bframe); await reload(driver); await sleep(800); continue; }
-            return false;
+          if (hasErr) console.log(`      ⚠️ Wrong answer (${attempt}/3) — trying next...`);
+          else {
+            await sleep(800);
+            if (await isSolved(driver)) { console.log('      ✅ Solved (delayed)!'); return true; }
           }
-          await sleep(800);
-          if (await isSolved(driver)) { console.log('      ✅ Solved (delayed)!'); return true; }
-          await driver.switchTo().frame(bframe);
         } catch (_) { await sw(driver); }
-
-        if (attempt < 3) {
-          try { await driver.switchTo().frame(bframe); await reload(driver); await sleep(800); }
-          catch (_) { await sw(driver); }
-        }
+        // Loop continues to next attempt with fresh bframe lookup
       }
     } finally {
       try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (_) {}

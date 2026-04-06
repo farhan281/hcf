@@ -5,28 +5,79 @@ const { detectCaptchaState, captchaSolved } = require('./detector');
 const { solveRecaptchaAudio }               = require('./recaptcha');
 const { waitForTurnstileAutoClear }         = require('./turnstile');
 const { solveImageCaptcha }                 = require('./image_captcha');
+const { solveHcaptcha }                     = require('./hcaptcha');
 const { CAPTCHA_POLICY, CAPTCHA_WAIT_TIMEOUT } = require('../config');
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 async function handleCaptcha(driver, record, stage, formContext, timeout) {
   timeout = timeout || CAPTCHA_WAIT_TIMEOUT;
+
+  // ── Post-submit: check success BEFORE detecting captcha ──────────────────────
+  // Some sites (nogood.io) show thank-you AND captcha simultaneously.
+  // If page already shows success, skip captcha entirely.
+  if (stage === 'post-submit') {
+    try {
+      await driver.switchTo().defaultContent();
+      const alreadySuccess = await driver.executeScript(function() {
+        var body = (document.body ? document.body.innerText : '').toLowerCase();
+        var url  = window.location.href.toLowerCase();
+        var TEXTS = ['thank you','thanks for','message sent','message received',
+          'successfully submitted','form submitted','we will get back',
+          'we have received','received your','inquiry received','enquiry received',
+          'request received','submission received'];
+        var SELS = ['.wpcf7-mail-sent-ok','.elementor-message-success',
+          '.gform_confirmation_message','.wpforms-confirmation',
+          '.alert-success','.success-message','.form-success',
+          '[class*="confirmation"]','[class*="thank-you"]','[class*="thankyou"]'];
+        if (TEXTS.some(function(t){ return body.indexOf(t) !== -1; })) return true;
+        for (var i=0; i<SELS.length; i++) {
+          var els = document.querySelectorAll(SELS[i]);
+          for (var j=0; j<els.length; j++) {
+            if (els[j].offsetParent !== null && (els[j].innerText||'').trim().length > 2)
+              return true;
+          }
+        }
+        if (['thank','success','confirm','sent','received','submitted']
+            .some(function(w){ return url.indexOf(w) !== -1; })) return true;
+        return false;
+      }).catch(() => false);
+      if (alreadySuccess) {
+        console.log('   ✅ Page already shows success — skipping post-submit captcha check');
+        record.captcha_status = 'already-success';  // signal to caller
+        return 'clear';
+      }
+    } catch (_) {}
+  }
+
   const state = await detectCaptchaState(driver, formContext);
   if (!state.present) return 'clear';
 
   const reason = state.reason || 'CAPTCHA challenge';
+
+  // reCAPTCHA V3 — invisible, score-based, cannot be solved by automation
+  // Skip these sites to avoid wasting time
+  if (reason.toLowerCase().includes('v3') || reason.toLowerCase().includes('recaptcha v3')) {
+    console.log(`   ⏭️ reCAPTCHA V3 detected — skipping (cannot solve score-based captcha)`);
+    record.status         = 'Skipped';
+    record.details        = 'reCAPTCHA V3 — score-based, not solvable';
+    record.captcha_status = `reCAPTCHA V3 at ${stage}`;
+    return 'blocked';
+  }
+
   const isImageCaptcha = reason.toLowerCase().includes('image');
 
   // Image CAPTCHA (securimage, text-in-image) — always try OCR regardless of policy
   if (isImageCaptcha) {
-    console.log(`   🖼️ Image CAPTCHA detected — trying OCR solver...`);
+    console.log(`   🖼️ Image/Math CAPTCHA detected — trying solver...`);
     if (await solveImageCaptcha(driver, formContext)) {
       record.captcha_status = `Auto-solved at ${stage}: ${reason}`;
       return 'clear';
     }
-    console.log(`   ⚠️ Image OCR failed — skipping`);
-    record.captcha_status = `Image OCR failed at ${stage}`;
-    return 'blocked';
+    // Math captcha failed — don't block, just continue (form may still submit)
+    console.log(`   ⚠️ Math/Image solver failed — continuing anyway`);
+    record.captcha_status = `Math solver attempted at ${stage}`;
+    return 'clear';
   }
 
   if (CAPTCHA_POLICY === 'block') {
@@ -68,6 +119,13 @@ async function handleCaptcha(driver, record, stage, formContext, timeout) {
         record.captcha_status = `Auto-solved at ${stage}: ${reason}`;
         return 'clear';
       }
+      // Post-submit reCAPTCHA — retry with fresh browser instead of hard skip
+      if (stage === 'post-submit') {
+        console.log(`   ⚠️ reCAPTCHA not solved at post-submit — retrying with fresh browser`);
+        record.details        = `reCAPTCHA not solved at ${stage}`;
+        record.captcha_status = `Not solved at ${stage}: ${reason}`;
+        return 'retry';
+      }
       console.log(`   ⚠️ reCAPTCHA not solved at ${stage} (likely rate-limited), skipping`);
       record.status         = 'Skipped';
       record.details        = `${reason} rate-limited at ${stage}`;
@@ -75,7 +133,20 @@ async function handleCaptcha(driver, record, stage, formContext, timeout) {
       return 'blocked';
     }
 
-    // Image CAPTCHA — try for any non-CF/non-reCAPTCHA reason
+    const isHcaptcha = reason.toLowerCase().includes('hcaptcha');
+    if (isHcaptcha) {
+      console.log(`   🤖 hCaptcha detected at ${stage} — using CNN solver...`);
+      if (await solveHcaptcha(driver)) {
+        record.captcha_status = `Auto-solved at ${stage}: ${reason}`;
+        return 'clear';
+      }
+      console.log(`   ⚠️ hCaptcha CNN solver failed at ${stage}`);
+      record.details        = `hCaptcha not solved at ${stage}`;
+      record.captcha_status = `Not solved at ${stage}: ${reason}`;
+      return 'retry';
+    }
+
+    // Image CAPTCHA — try for any non-CF/non-reCAPTCHA/non-hCaptcha reason
     console.log(`   🖼️ Trying image CAPTCHA solver...`);
     if (await solveImageCaptcha(driver, formContext)) {
       record.captcha_status = `Auto-solved at ${stage}: ${reason}`;

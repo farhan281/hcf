@@ -34,10 +34,10 @@ async function findContactForm(driver) {
   for (let pass = 1; pass <= 3; pass++) {
     if (pass > 1) {
       console.log(`      ⏳ Pass ${pass}/3 — waiting for JS render...`);
-      await sleep(pass * 1200);
+      await sleep(pass * 800);  // reduced from 1200
       try {
         await driver.executeScript('window.scrollTo(0, document.body.scrollHeight*0.3)');
-        await sleep(400);
+        await sleep(300);
         await driver.executeScript('window.scrollTo(0,0)');
       } catch (_) {}
     }

@@ -1,21 +1,23 @@
 // navigator.js
 'use strict';
 
-const CONTACT_URL_WORDS = ['contact','get-in-touch','inquiry','enquiry','feedback','reach-us'];
+const CONTACT_URL_WORDS = ['contact','get-in-touch','inquiry','enquiry','feedback','reach-us','reach-out','connect'];
 
 const STRONG_TEXT = [
   'contact us','contact','get in touch','reach us','get in contact',
   'contact form','reach out','write to us','feedback','send us a message',
   'contacto','contáctanos','contactanos','contato','enquire','inquire',
+  'hire us','work with us','let\'s talk','lets talk','talk to us',
+  'get a quote','free consultation','request a quote','start a project',
 ];
-const HREF_KEYWORDS  = ['contact','inquiry','enquiry','feedback','reach-us','get-in-touch'];
+const HREF_KEYWORDS  = ['contact','inquiry','enquiry','feedback','reach-us','get-in-touch','connect','hire','quote'];
 const BLACKLIST_TEXT = ['about','about us','home','services','portfolio','blog','news',
   'gallery','team','careers','jobs','faq','privacy','terms','sitemap','login',
   'register','shop','store','products','pricing','testimonials','reviews'];
 const BLACKLIST_HREF = ['about','javascript','mailto','tel','login','register',
   'shop','cart','checkout','blog','news','gallery','portfolio','careers','jobs'];
 
-// Check if current page already has a usable contact form (with message/textarea)
+// Check if current page already has a usable contact form
 const HAS_CONTACT_FORM_JS = `
 (function() {
   var forms = Array.from(document.querySelectorAll('form') || []);
@@ -26,13 +28,12 @@ const HAS_CONTACT_FORM_JS = `
       'input[type=email],[name*=email i],[id*=email i],[placeholder*=email i]');
     var visible = Array.from(f.querySelectorAll('input,textarea,select'))
       .filter(function(e){ return e.offsetParent !== null && e.type !== 'hidden'; }).length;
-    var snippet = (f.id+' '+f.className+' '+(f.innerHTML||'').substring(0,1000)).toLowerCase();
-    var isPw = !!f.querySelector('input[type=password]');
-    var isSearch = snippet.indexOf('search') !== -1 && !hasEmail;
+    var isPw     = !!f.querySelector('input[type=password]');
+    var isSearch = (f.id+' '+f.className).toLowerCase().indexOf('search') !== -1 && !hasEmail;
     if (isPw || isSearch) continue;
     if ((hasTextarea || hasEmail) && visible >= 2) return true;
   }
-  // Formless inputs with email + textarea
+  // Formless inputs (React/Vue/Angular)
   var emails = Array.from(document.querySelectorAll(
     'input[type=email],[name*=email i],[placeholder*=email i]'
   )).filter(function(e){ return e.offsetParent !== null; });
@@ -42,6 +43,7 @@ const HAS_CONTACT_FORM_JS = `
 })();
 `;
 
+// Scan page links — returns top scored contact-page candidates
 const SCAN_LINKS_JS = `
 (function(strongKws, hrefKws, blackText, blackHref) {
   var scored = []; var seen = new Set();
@@ -75,8 +77,7 @@ async function waitForPageReady(driver, timeout = 6000) {
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
     try {
-      const state = await driver.executeScript('return document.readyState');
-      if (state === 'complete') return;
+      if (await driver.executeScript('return document.readyState') === 'complete') return;
     } catch (_) {}
     await sleep(200);
   }
@@ -84,6 +85,20 @@ async function waitForPageReady(driver, timeout = 6000) {
 
 function isContactUrl(url) {
   return CONTACT_URL_WORDS.some(w => url.toLowerCase().includes(w));
+}
+
+// Check if URL returns a real page (not 404/error)
+async function isRealPage(driver) {
+  try {
+    return await driver.executeScript(function() {
+      var title = document.title.toLowerCase();
+      var body  = (document.body ? document.body.innerText : '').toLowerCase().slice(0, 500);
+      var bad   = ['404','page not found','not found','error 404','410','gone',
+                   '403','forbidden','500','server error','503','unavailable',
+                   'this page does not exist','page cannot be found','no longer exists'];
+      return !bad.some(function(t){ return title.includes(t) || body.includes(t); });
+    });
+  } catch (_) { return false; }
 }
 
 async function findContactPage(driver) {
@@ -96,7 +111,7 @@ async function findContactPage(driver) {
     return true;
   }
 
-  // 2. Current page already has a contact form with message field? Use it directly
+  // 2. Current page already has a contact form? Use it directly — no navigation needed
   try {
     const hasForm = await driver.executeScript(HAS_CONTACT_FORM_JS);
     if (hasForm) {
@@ -105,7 +120,7 @@ async function findContactPage(driver) {
     }
   } catch (_) {}
 
-  // 3. Look for contact page link
+  // 3. Scan page links — ONLY follow links that exist on the page
   let candidates = [];
   try {
     candidates = await driver.executeScript(
@@ -119,22 +134,33 @@ async function findContactPage(driver) {
 
   for (const [href, label, score] of candidates) {
     try {
+      // Build absolute URL
       let absUrl = href;
       if (!href.startsWith('http')) {
         const u = new URL(baseUrl);
         absUrl = `${u.protocol}//${u.host}${href.startsWith('/') ? href : '/' + href}`;
       }
+
+      // Skip if same page
       const u1 = new URL(absUrl), u2 = new URL(baseUrl);
       if (u1.pathname === u2.pathname && u1.host === u2.host) continue;
       if (BLACKLIST_HREF.some(b => absUrl.toLowerCase().includes('/' + b))) continue;
 
       await driver.get(absUrl);
       await waitForPageReady(driver, 6000);
-      await sleep(1500);
-      const destUrl = await driver.getCurrentUrl();
+      await sleep(1200);
 
-      // Verify destination has a contact form with message field
+      // Skip 404/error pages
+      if (!await isRealPage(driver)) {
+        console.log(`      ⚠️ "${label}" → error page, skipping`);
+        await driver.navigate().back().catch(() => {});
+        await waitForPageReady(driver, 3000);
+        continue;
+      }
+
+      const destUrl    = await driver.getCurrentUrl();
       const destHasForm = await driver.executeScript(HAS_CONTACT_FORM_JS).catch(() => false);
+
       if (isContactUrl(destUrl) || destHasForm) {
         console.log(`      ✅ Navigated to: "${label}" (score=${score})`);
         return true;
@@ -142,36 +168,12 @@ async function findContactPage(driver) {
 
       console.log(`      ⚠️ "${label}" has no contact form — going back`);
       await driver.navigate().back();
-      await waitForPageReady(driver, 4000);
+      await waitForPageReady(driver, 3000);
     } catch (_) {}
   }
 
-  // Fallback: try common contact URL paths directly
-  try {
-    const base = new URL(baseUrl);
-    const commonPaths = ['/contact','/contact-us','/contact_us','/get-in-touch',
-      '/appointment','/appointments','/new-patient','/new-patients','/request-appointment'];
-    for (const p of commonPaths) {
-      try {
-        const tryUrl = `${base.protocol}//${base.host}${p}`;
-        await driver.get(tryUrl);
-        await waitForPageReady(driver, 5000);
-        await sleep(1000);
-        const destUrl = await driver.getCurrentUrl();
-        const destPath = new URL(destUrl).pathname;
-        if (destPath === '/' || destPath === base.pathname) continue;
-        const destHasForm = await driver.executeScript(HAS_CONTACT_FORM_JS).catch(() => false);
-        if (isContactUrl(destUrl) || destHasForm) {
-          console.log(`      ✅ Found via common path: ${p}`);
-          return true;
-        }
-      } catch (_) {}
-    }
-    await driver.get(baseUrl).catch(() => {});
-    await waitForPageReady(driver, 4000);
-  } catch (_) {}
-
-  console.log('      ℹ️ No contact page found, using current page');
+  // 4. No link found on page — do NOT guess random paths
+  console.log('      ℹ️ No contact link found on page — using current page');
   return false;
 }
 

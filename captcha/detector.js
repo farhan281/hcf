@@ -53,19 +53,37 @@ async function detectCaptchaState(driver, formContext) {
 
   if (await isRecaptchaV2Visible(driver)) return { present: true, reason: 'reCAPTCHA v2' };
 
+  // reCAPTCHA V3 — only flag if explicitly blocking (not just present in background)
+  // V3 runs silently; only detect if page shows V3 error after submit
+  try {
+    const v3Error = await driver.executeScript(`
+      var body = document.body ? document.body.innerText.toLowerCase() : '';
+      return body.includes('recaptcha v3') || body.includes('recaptcha validation failed') ||
+             body.includes('suspected as abusive') || body.includes('v3 validation failed');
+    `);
+    if (v3Error) return { present: true, reason: 'reCAPTCHA V3' };
+  } catch (_) {}
+
   const hcaptchaChecks = [
-    ['hCaptcha iframe',   "iframe[title*='hCaptcha']",             true],
-    ['hCaptcha iframe',   "iframe[src*='hcaptcha']",               true],
-    ['hCaptcha widget',   '.h-captcha',                            true],
-    ['hCaptcha response', "textarea[name='h-captcha-response']",   false],
+    ['hCaptcha iframe',   "iframe[title*='hCaptcha']",                    true],
+    ['hCaptcha iframe',   "iframe[src*='hcaptcha']",                       true],
+    ['hCaptcha iframe',   "iframe[title*='Widget containing checkbox']",   true],
+    ['hCaptcha widget',   '.h-captcha',                                    true],
+    ['hCaptcha widget',   'h-captcha',                                     true],
+    ['hCaptcha response', "textarea[name='h-captcha-response']",           false],
   ];
   for (const [reason, sel, vis] of hcaptchaChecks) {
     if (await selPresent(ctx, sel, vis)) {
+      // Already solved — token present and non-empty
       try {
-        const resp = await ctx.findElements(By.css("textarea[name='h-captcha-response']"));
-        if (resp.length && (await resp[0].getAttribute('value') || '').trim()) break;
+        const resp = await ctx.findElements(
+          By.css("textarea[name='h-captcha-response'],input[name='h-captcha-response']"));
+        for (const r of resp) {
+          const val = (await r.getAttribute('value') || '').trim();
+          if (val && val.length > 10) return { present: false, reason: '' }; // already solved
+        }
       } catch (_) {}
-      return { present: true, reason };
+      return { present: true, reason: 'hCaptcha' };
     }
   }
 

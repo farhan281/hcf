@@ -334,11 +334,10 @@ function solveMathExpr(text) {
 }
 
 async function solveMathCaptcha(driver) {
-  // CF7 Quiz — fetch question via CF7 REST API
+  // CF7 Quiz — fetch question via CF7 REST API or label text
   try {
     const cf7 = await driver.executeAsyncScript(function() {
       var done = arguments[arguments.length - 1];
-      // First check if label already has text
       var inputs = Array.from(document.querySelectorAll('input.wpcf7-quiz,[name*="quiz-"]'));
       for (var i = 0; i < inputs.length; i++) {
         var inp = inputs[i];
@@ -348,6 +347,14 @@ async function solveMathCaptcha(driver) {
         if (lbl) {
           var span = lbl.querySelector('.wpcf7-quiz-label');
           question = span ? span.innerText.trim() : lbl.innerText.trim();
+        }
+        if (!question && inp.id) {
+          var l2 = document.querySelector('label[for="' + inp.id + '"]');
+          if (l2) question = l2.innerText.trim();
+        }
+        if (!question) {
+          var par = inp.parentElement;
+          if (par) question = par.innerText.trim();
         }
         if (question) { done({ inp: inp, question: question }); return; }
       }
@@ -368,11 +375,34 @@ async function solveMathCaptcha(driver) {
         .catch(function() { done(null); });
     });
     if (cf7 && cf7.question) {
-      console.log(`      🔢 CF7 Quiz: "${cf7.question.slice(0,60)}"`);
-      const answer = solveMathExpr(cf7.question);
-      if (answer !== null) {
-        console.log(`      ✅ CF7 Quiz answer: ${answer}`);
+      console.log(`      🔢 CF7 Quiz: "${cf7.question.slice(0,80)}"`);
+
+      // Try math first
+      const mathAnswer = solveMathExpr(cf7.question);
+      if (mathAnswer !== null) {
+        console.log(`      ✅ Math answer: ${mathAnswer}`);
+        await typeAnswer(driver, cf7.inp, mathAnswer);
+        return true;
+      }
+
+      // Extract answer directly from label text
+      // Pattern: "Enter X" or "Type X" or "Enter: X" where X is the answer
+      const directMatch = cf7.question.match(
+        /(?:enter|type|write|input|spam check[:\s]+enter)[:\s]+([\w@#$%^&*!]+)/i
+      );
+      if (directMatch) {
+        const answer = directMatch[1].trim();
+        console.log(`      ✅ Direct answer from label: "${answer}"`);
         await typeAnswer(driver, cf7.inp, answer);
+        return true;
+      }
+
+      // Last word in label is often the answer for "Spam Check Enter s3oc0mpany"
+      const words = cf7.question.trim().split(/\s+/);
+      const lastWord = words[words.length - 1];
+      if (lastWord && lastWord.length >= 3 && !/^(the|and|or|is|a|an|to|for|of)$/i.test(lastWord)) {
+        console.log(`      ✅ Last word answer: "${lastWord}"`);
+        await typeAnswer(driver, cf7.inp, lastWord);
         return true;
       }
     }
