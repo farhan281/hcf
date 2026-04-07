@@ -3,9 +3,9 @@
 // Sheet 2: "CFResults"    — Contact form fill results  (main.js)
 // Sheet 3: "RetryResults" — Retry run results          (retry.js)
 
-const MAP_SHEET   = 'MapData';
-const CF_SHEET    = 'CFResults';
-const RETRY_SHEET = 'RetryResults';
+const MAP_SHEET   = 'RE_MapData';      // Real Estate scraped data
+const CF_SHEET    = 'RE_CFResults';    // Contact form results
+const RETRY_SHEET = 'RE_RetryResults'; // Retry results
 
 const MAP_HEADERS = [
   'Index','Area','Keyword','Name','Rating','Reviews',
