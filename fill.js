@@ -9,9 +9,9 @@ const autopush = spawn('node', ['autopush.js'], { cwd: __dirname, stdio: 'ignore
 autopush.unref();
 console.log('🔄 Autopush started\n');
 
-const CSV_PATH  = path.join(__dirname, 'digital_marketing_data.csv');
+const CSV_PATH  = path.join(__dirname, 'digital_marketing_data.csv');  // Real Estate scraped data
 const URLS_FILE = path.join(__dirname, 'retry_urls.txt');
-const CHECK_INTERVAL = 30000; // check every 30 seconds
+const CHECK_INTERVAL = 30000;
 
 fs.mkdirSync(path.join(__dirname, 'form_results'), { recursive: true });
 
@@ -49,8 +49,8 @@ function getNewUrls() {
   const awIdx = headers.findIndex(h => h.includes('actual website'));
   const mwIdx = headers.findIndex(h => h.includes('maps website'));
 
-  const filled = getFilledUrls();
-  const queued = new Set(
+  const filled  = getFilledUrls();
+  const queued  = new Set(
     fs.existsSync(URLS_FILE)
       ? fs.readFileSync(URLS_FILE, 'utf8').split('\n').map(l => l.trim()).filter(Boolean)
       : []
@@ -77,11 +77,11 @@ let fillerRunning = false;
 function runFiller() {
   if (fillerRunning) return;
   fillerRunning = true;
-  console.log('\n🚀 Starting Contact Form Filler...\n');
+  console.log('\n🏠 Starting Real Estate Contact Form Filler...\n');
   const child = spawn('node', ['main.js'], { cwd: __dirname, stdio: 'inherit' });
   child.on('exit', () => {
     fillerRunning = false;
-    console.log('\n⏳ Filler done — watching for new URLs...');
+    console.log('\n⏳ Filler done — watching for new Real Estate URLs...');
   });
 }
 
@@ -89,15 +89,14 @@ function tick() {
   const newUrls = getNewUrls();
   if (newUrls.length) {
     fs.appendFileSync(URLS_FILE, newUrls.join('\n') + '\n', 'utf8');
-    console.log(`\n➕ ${newUrls.length} new URLs added to queue`);
+    console.log(`\n➕ ${newUrls.length} new Real Estate agency URLs added to queue`);
     runFiller();
   } else {
     process.stdout.write('.');
   }
 }
 
-// Initial run
-console.log('👀 Watching for URLs... (Ctrl+C to stop)\n');
+console.log('🏠 Real Estate Outreach — Watching for URLs... (Ctrl+C to stop)\n');
 if (!fs.existsSync(URLS_FILE)) fs.writeFileSync(URLS_FILE, '', 'utf8');
 tick();
 setInterval(tick, CHECK_INTERVAL);
