@@ -379,15 +379,26 @@ async function scrapeUnified() {
 
                 // Handle consent page if shown
                 const isConsent = await page.evaluate(() => {
-                    return document.querySelector('button[aria-label*="Accept"], button[aria-label*="Reject"], form[action*="consent"]') !== null;
+                    return document.querySelector('button, form[action*="consent"]') !== null &&
+                           document.title.toLowerCase().includes('voordat') ||
+                           document.title.toLowerCase().includes('before you') ||
+                           document.title.toLowerCase().includes('consent');
                 });
                 if (isConsent) {
                     console.log('🍪 Consent page — accepting...');
                     await page.evaluate(() => {
                         var btns = Array.from(document.querySelectorAll('button'));
-                        var accept = btns.find(b => b.innerText.includes('Accept') || b.innerText.includes('Agree') || b.getAttribute('aria-label')?.includes('Accept'));
+                        var accept = btns.find(b => {
+                            var t = (b.innerText || '').toLowerCase();
+                            return t.includes('accept') || t.includes('agree') ||
+                                   t.includes('accepteren') || t.includes('akzeptieren') ||
+                                   t.includes('accepter') || t.includes('aceptar');
+                        });
                         if (accept) accept.click();
                     });
+                    await page.waitForTimeout(3000);
+                    // Navigate again after consent
+                    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
                     await page.waitForTimeout(3000);
                 }
 
