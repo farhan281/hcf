@@ -1,5 +1,7 @@
 {
-  "completed": [],
+  "completed": [
+    "New York-real estate agency"
+  ],
   "currentIndex": 0,
   "processedMapsUrls": [
     "https://www.google.com/maps/place/Manhattan+Realty+Group/data=!4m7!3m6!1s0x89c259038c990fa7:0x884dc2a7ca9270b4!8m2!3d40.7512499!4d-73.9731679!16s%2Fg%2F11bxb9__p9!19sChIJpw-ZjANZwokRtHCSyqfCTYg?authuser=0&hl=nl&rclk=1",
@@ -18,6 +20,7 @@
     "https://www.google.com/maps/place/Digs+Realty+Group/data=!4m7!3m6!1s0x89c2588974cf2919:0x5222b76039fb085f!8m2!3d40.780544!4d-73.979814!16s%2Fg%2F11b66kb8j5!19sChIJGSnPdIlYwokRXwj7OWC3IlI?authuser=0&hl=nl&rclk=1",
     "https://www.google.com/maps/place/Sido+New+York+Real+Estate/data=!4m7!3m6!1s0x89c2593e33429869:0x4498ade6eabe!8m2!3d40.7514438!4d-73.9890841!16s%2Fg%2F11spxwk1h4!19sChIJaZhCMz5ZwokRvurmrZhEAAA?authuser=0&hl=nl&rclk=1",
     "https://www.google.com/maps/place/The+Prince+Team+at+The+Corcoran+Group+Real+Estate/data=!4m7!3m6!1s0x89c259eec8f7ea75:0x107090895d7d4368!8m2!3d40.7227995!4d-73.9987995!16s%2Fg%2F11h1yflm22!19sChIJder3yO5ZwokRaEN9XYmQcBA?authuser=0&hl=nl&rclk=1",
-    "https://www.google.com/maps/place/Josh+Rubin+-+Rubin+Team+at+Douglas+Elliman+Real+Estate+NYC/data=!4m7!3m6!1s0x89c259a2c674f9ab:0x6128d55d607989b9!8m2!3d40.7384502!4d-73.9912013!16s%2Fg%2F11d_7rl898!19sChIJq_l0xqJZwokRuYl5YF3VKGE?authuser=0&hl=nl&rclk=1"
+    "https://www.google.com/maps/place/Josh+Rubin+-+Rubin+Team+at+Douglas+Elliman+Real+Estate+NYC/data=!4m7!3m6!1s0x89c259a2c674f9ab:0x6128d55d607989b9!8m2!3d40.7384502!4d-73.9912013!16s%2Fg%2F11d_7rl898!19sChIJq_l0xqJZwokRuYl5YF3VKGE?authuser=0&hl=nl&rclk=1",
+    "https://www.google.com/maps/place/New+York+Property+Agent,+Weimin+Tan/data=!4m7!3m6!1s0x89c258e5208284e5:0x57f5f139a382d42e!8m2!3d40.7589852!4d-73.9701907!16s%2Fg%2F1tvympqk!19sChIJ5YSCIOVYwokRLtSCoznx9Vc?authuser=0&hl=nl&rclk=1"
   ]
 }
