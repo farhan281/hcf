@@ -375,7 +375,10 @@ async function scrapeUnified() {
                 await page.waitForTimeout(1000);
                 
                 // Find and click search box
-                const searchBox = await page.waitForSelector('input.UGojuc, input[name="q"], input[id="UGojuc"]', { timeout: 10000 });
+                const searchBox = await page.waitForSelector(
+                    'input[name="q"], input.searchboxinput, input[id="searchboxinput"], input.UGojuc, input[id="UGojuc"]',
+                    { timeout: 15000 }
+                );
                 await searchBox.click();
                 
                 // Clear any existing text and type search query
