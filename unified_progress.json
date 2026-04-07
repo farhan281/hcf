@@ -1,7 +1,8 @@
 {
   "completed": [
-    "New York-real estate agency"
+    "New York-real estate agency",
+    "New York-real estate broker"
   ],
-  "currentIndex": 0,
+  "currentIndex": 1,
   "processedMapsUrls": []
 }
