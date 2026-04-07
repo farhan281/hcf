@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 
-const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxrirb17CXY4T1s_uvK-m9p29S-PrfIs8L4CZPCfVXCg8NwMZz0XMVs9scuKJiNhBFX/exec';
+const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwZFu9gSUV0yo571sUsTKQtK4Gmnis9icSX1m6WF7JtVLcMgmgOPyiXTdMpkVnWwdyzuQ/exec';
 const CONFIG_FILE = 'config.json';
 const PROGRESS_FILE = 'unified_progress.json';
 const CSV_FILE = 'digital_marketing_data.csv';
