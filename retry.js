@@ -31,7 +31,7 @@ const RETRY_PROG    = path.join(__dirname, OUTPUT_DIR, 'retry_progress.txt');
 const RETRY_SKIP    = path.join(__dirname, OUTPUT_DIR, 'retry_skipped.txt');
 
 const SHEETS_URL    = process.env.GOOGLE_SHEETS_URL ||
-  'https://script.google.com/macros/s/AKfycbxrirb17CXY4T1s_uvK-m9p29S-PrfIs8L4CZPCfVXCg8NwMZz0XMVs9scuKJiNhBFX/exec';
+  'https://script.google.com/macros/s/AKfycbwZFu9gSUV0yo571sUsTKQtK4Gmnis9icSX1m6WF7JtVLcMgmgOPyiXTdMpkVnWwdyzuQ/exec';
 
 function sendToRetrySheet(record) {
   if (!SHEETS_URL) return;
