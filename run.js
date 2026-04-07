@@ -7,7 +7,16 @@ const autopush = spawn('node', ['autopush.js'], { cwd: __dirname, stdio: 'ignore
 autopush.unref();
 console.log('🔄 Autopush started\n');
 
-// Start scraper
-console.log('🗺️  Starting Google Maps Scraper...\n');
-const child = spawn('node', ['unified_scraper.js'], { cwd: __dirname, stdio: 'inherit' });
-child.on('exit', code => process.exit(code || 0));
+// Start Real Estate scraper
+console.log('🏠 Starting Real Estate Google Maps Scraper...\n');
+const scraper = spawn('node', ['unified_scraper.js'], { cwd: __dirname, stdio: 'inherit' });
+
+// Start form filler in parallel (watches CSV for new URLs)
+console.log('📋 Starting Contact Form Filler (watching for URLs)...\n');
+const filler = spawn('node', ['fill.js'], { cwd: __dirname, stdio: 'inherit', detached: true });
+filler.unref();
+
+scraper.on('exit', code => {
+  console.log('\n✅ Scraper done. Filler continues in background.');
+  process.exit(code || 0);
+});
