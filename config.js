@@ -35,25 +35,26 @@ function getNextContact() {
     phone_local:        '9913298992',
     company:            'Perception System',
     website:            'https://www.perceptionsystem.com/',
-    subject:            'White-Label Dev & AI Services for Your Agency Clients',
+    subject:            'White-Label Tech & Digital Services for Real Estate Agencies',
     budget:             'Flexible',
     address:            'Ahmedabad, Gujarat, India',
     message: `Hi Team,
 
-I came across your agency and love the work you're doing for your clients!
+I came across your real estate agency and was impressed by your portfolio!
 
-I'm reaching out from Perception System — a technology partner trusted by agencies like yours to deliver white-label services that you can resell under your own brand:
+I'm reaching out from Perception System — a technology partner helping real estate agencies like yours grow faster with white-label digital solutions:
 
-• White-Label Web & Mobile App Development (CRM, ERP, SaaS, custom builds)
-• AI-powered automation & chatbot solutions for your clients
-• White-Label SEO, SMM & Pay-after-results Digital Marketing
-• Dedicated dev teams you can plug into your existing projects
+• Custom Real Estate Websites & Property Portals (IDX/MLS integration)
+• AI-powered Lead Generation & CRM Automation
+• White-Label SEO & Local Search Domination for realtors
+• Virtual Tour & 3D Property Showcase development
+• Dedicated tech teams — your brand, our work
 
-We work quietly in the background — your clients never know we exist. You get the credit, we do the heavy lifting.
+We work silently in the background — your clients never know we exist. You get the credit, we handle the technology.
 
-Trusted by agencies serving Dubai Govt., Stanford University & 500+ global clients.
+Trusted by agencies serving Dubai Govt., Stanford University & 500+ global clients across real estate, healthcare, and finance.
 
-Would love to explore how we can help you scale without hiring overhead.
+Would love to explore how we can help your agency close more deals with better technology.
 
 Warm regards,
 ${full}

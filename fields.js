@@ -436,16 +436,20 @@ async function fillAllFields(driver, form, contact, usedFields, filled, failed) 
           o.value === '91' || o.value.toLowerCase() === 'india');
       }
 
-      // Service/inquiry type → digital marketing related
-      if (!chosen && /service|interest|topic|subject|inquiry|enquiry|type|reason|department|help|looking/.test(label)) {
+      // Service/inquiry type → real estate + digital marketing related
+      if (!chosen && /service|interest|topic|subject|inquiry|enquiry|type|reason|department|help|looking|need|project/.test(label)) {
         const PREFER = [
-          'digital marketing','seo','social media','marketing','advertising',
-          'ppc','content marketing','branding','web design','web development',
+          // Real Estate specific
+          'website development','web development','website design','web design',
+          'seo','search engine optimization','digital marketing','online marketing',
+          'lead generation','social media','paid advertising','ppc','google ads',
+          'virtual tour','3d tour','property portal','crm','automation',
+          'branding','content marketing','email marketing','video marketing',
+          // Generic
           'general inquiry','general enquiry','general information','general',
           'other','inquiry','enquiry','information','question','contact us',
         ];
         chosen = pool.find(o => PREFER.some(p => o.text === p || o.text.includes(p)));
-        // fallback: first real option
         if (!chosen) chosen = pool[0];
       }
 
