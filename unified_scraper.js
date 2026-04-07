@@ -353,6 +353,12 @@ async function scrapeUnified() {
     
     const page = await browser.newPage();
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+
+    // Set Google consent cookie to skip consent page
+    await page.setCookie(
+      { name: 'CONSENT', value: 'YES+cb', domain: '.google.com', path: '/' },
+      { name: 'SOCS',    value: 'CAISHAgBEhJnd3NfMjAyMzA4MTAtMF9SQzIaAmVuIAEaBgiA_LynBg', domain: '.google.com', path: '/' }
+    );
     
     let totalCompanies = 0;
     let totalEmails = 0;
