@@ -378,12 +378,11 @@ async function scrapeUnified() {
                 await page.waitForTimeout(3000);
 
                 // Handle consent page if shown
-                const isConsent = await page.evaluate(() => {
-                    return document.querySelector('button, form[action*="consent"]') !== null &&
-                           document.title.toLowerCase().includes('voordat') ||
-                           document.title.toLowerCase().includes('before you') ||
-                           document.title.toLowerCase().includes('consent');
-                });
+                const pageTitle = await page.title();
+                const isConsent = pageTitle.toLowerCase().includes('voordat') ||
+                                  pageTitle.toLowerCase().includes('before you') ||
+                                  pageTitle.toLowerCase().includes('consent') ||
+                                  pageTitle.toLowerCase().includes('privacy');
                 if (isConsent) {
                     console.log('🍪 Consent page — accepting...');
                     await page.evaluate(() => {
@@ -396,13 +395,13 @@ async function scrapeUnified() {
                         });
                         if (accept) accept.click();
                     });
-                    await page.waitForTimeout(3000);
-                    // Navigate again after consent
-                    await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
-                    await page.waitForTimeout(3000);
+                    await page.waitForTimeout(4000);
+                    // Navigate to search URL again after consent
+                    await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 25000 });
+                    await page.waitForTimeout(4000);
                 }
 
-                // Wait for results
+                // Wait for results container
                 await page.waitForTimeout(2000);
                 
                 // Scroll to load all results
