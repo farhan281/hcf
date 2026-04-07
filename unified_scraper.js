@@ -370,29 +370,29 @@ async function scrapeUnified() {
             console.log(`\n🔍 [${i + 1}/${searches.length}] ${city} - ${keyword}`);
             
             try {
-                // Go to Google Maps and perform search
-                await page.goto('https://www.google.com/maps', { waitUntil: 'domcontentloaded' });
-                await page.waitForTimeout(1000);
-                
-                // Find and click search box
-                const searchBox = await page.waitForSelector(
-                    'input[name="q"], input.searchboxinput, input[id="searchboxinput"], input.UGojuc, input[id="UGojuc"]',
-                    { timeout: 15000 }
-                );
-                await searchBox.click();
-                
-                // Clear any existing text and type search query
-                await searchBox.evaluate(el => el.value = '');
-                const searchQuery = `${keyword} ${city}`;
-                await searchBox.type(searchQuery, { delay: 100 });
-                
-                // Press Enter or click search button
-                await page.keyboard.press('Enter');
+                // Use direct search URL instead of navigating to maps first
+                const searchQuery = encodeURIComponent(`${keyword} ${city}`);
+                const searchUrl = `https://www.google.com/maps/search/${searchQuery}/`;
+                console.log(`🔍 Searching: ${keyword} ${city}`);
+                await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
                 await page.waitForTimeout(3000);
-                
-                // Wait for results to load
-                await page.waitForSelector('div[role="main"]', { timeout: 10000 });
-                await page.waitForTimeout(1500);
+
+                // Handle consent page if shown
+                const isConsent = await page.evaluate(() => {
+                    return document.querySelector('button[aria-label*="Accept"], button[aria-label*="Reject"], form[action*="consent"]') !== null;
+                });
+                if (isConsent) {
+                    console.log('🍪 Consent page — accepting...');
+                    await page.evaluate(() => {
+                        var btns = Array.from(document.querySelectorAll('button'));
+                        var accept = btns.find(b => b.innerText.includes('Accept') || b.innerText.includes('Agree') || b.getAttribute('aria-label')?.includes('Accept'));
+                        if (accept) accept.click();
+                    });
+                    await page.waitForTimeout(3000);
+                }
+
+                // Wait for results
+                await page.waitForTimeout(2000);
                 
                 // Scroll to load all results
                 console.log('📜 Scrolling to load all results...');
